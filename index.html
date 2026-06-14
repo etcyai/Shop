@@ -188,6 +188,33 @@
   .empty-cart { text-align: center; padding: 6rem 2rem; }
   .empty-cart i { font-size: 64px; color: #c7c7cc; margin-bottom: 1.5rem; display: block; }
   .empty-cart p { color: var(--sf-text-grey); font-size: 19px; margin-bottom: 2rem; font-weight: 300; }
+/* 貼在這裡 */
+  .site-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4rem 2.5rem;
+    background: #ffffff;
+    border-top: 0.5px solid var(--sf-border);
+    margin-top: 5rem;
+  }
+  .footer-ig-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--sf-text-grey);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 400;
+    transition: color 0.2s, transform 0.2s;
+  }
+  .footer-ig-link:hover {
+    color: var(--sf-dark);
+    transform: scale(1.02);
+  }
+  .footer-ig-link i {
+    font-size: 18px;
+  }
 </style>
 </head>
 <body>
@@ -545,5 +572,11 @@ function deleteItem(index) {
 // 初始啟動
 updateBadge();
 </script>
+<!-- 網頁最下方的頁尾連結 -->
+<footer class="site-footer">
+  <a href="https://www.instagram.com/etcyai/" target="_blank" class="footer-ig-link">
+    <i class="ti ti-brand-instagram"></i> Instagram
+  </a>
+</footer>
 </body>
 </html>

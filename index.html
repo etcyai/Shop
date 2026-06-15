@@ -63,9 +63,53 @@
   .page.active { display: block; }
 
   /* HERO */
+  /* HERO 區塊改良背景 */
+  /* HERO 區塊改良背景 - 修正滑出邏輯 */
   .hero {
-    height: 620px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: #000; color: #fff; text-align: center; padding: 2rem;
+    height: 620px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    background: #000; 
+    color: #fff; 
+    text-align: center; 
+    padding: 2rem;
+    position: relative; 
+    overflow: hidden;
+  }
+  .hero-bg-layer {
+    position: absolute;
+    inset: 0;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    pointer-events: none;
+  }
+  /* 互動前：原本枯萎的樹 */
+  .hero-bg-1 {
+    z-index: 1;
+    background-image: url("https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_195923_b0ba8ace-1d1d-4f2c-9a28-1ab84b330680.png&w=1280&q=85");
+    animation: heroZoom 20s infinite alternate ease-in-out;
+  }
+  /* 互動後：長出花草的樹 */
+  /* 互動後：長出花草的樹 (修正了預設隱藏的語法) */
+  .hero-bg-2 {
+    z-index: 3;
+    background-image: url("https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_201152_bba90a12-bf12-459f-91f0-51f237dbaf3b.png&w=1280&q=85");
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    /* 預設完全透明，確保滑鼠不在上面時，絕對只有枯萎的樹 */
+    mask-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0));
+    -webkit-mask-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0));
+  }
+  .hero-eyebrow, .hero-title, .hero-sub, .hero-btns {
+    position: relative;
+    z-index: 5;
+  }
+  @keyframes heroZoom {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
   }
   .hero-eyebrow { font-size: 14px; font-weight: 500; letter-spacing: 3px; color: #f5f5f7; text-transform: uppercase; margin-bottom: 1rem; }
   .hero-title { font-size: 72px; font-weight: 600; letter-spacing: -3px; margin-bottom: 1.5rem; text-transform: uppercase; }
@@ -432,7 +476,11 @@
 
 <!-- HOME -->
 <div class="page active" id="page-home">
-  <div class="hero">
+  <div class="hero" id="interactive-hero">
+
+<div class="hero-bg-layer hero-bg-1"></div>
+      <div class="hero-bg-layer hero-bg-2" id="reveal-layer"></div>
+      
     <p class="hero-eyebrow">2026 核心系列</p>
     <h1 class="hero-title">shop</h1>
     <p class="hero-sub">design</p>
@@ -1293,6 +1341,78 @@ updateBadge();
     const icon = document.getElementById('nav-settings-icon');
     if (icon) { icon.style.opacity = '1'; icon.style.pointerEvents = 'auto'; icon.style.position = ''; }
   }
+})();
+// HERO 聚光燈特效
+// HERO 聚光燈特效（超流暢 GPU 硬件加速 + 4K 超高清 + 自動滑出重置）
+// HERO 聚光燈特效（完美修正滑出重置與往下滑動問題）
+(function() {
+  const hero = document.getElementById('interactive-hero') || document.querySelector('.hero');
+  const revealLayer = document.getElementById('reveal-layer');
+  if (!hero || !revealLayer) return;
+
+  const SPOTLIGHT_R = 260; // 聚光燈圈圈半徑大小
+  let mouseX = -999, mouseY = -999;
+  let smoothX = -999, smoothY = -999;
+  let isHovering = false;
+
+  // 滑鼠進入與移動
+  hero.addEventListener('mousemove', (e) => {
+    isHovering = true;
+    const rect = hero.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+    if (smoothX === -999) { smoothX = mouseX; smoothY = mouseY; }
+  });
+
+  // 滑鼠離開
+  hero.addEventListener('mouseleave', () => {
+    isHovering = false;
+  });
+
+  function updateMask() {
+    // 檢查網頁滾動：如果 Hero 區塊頂部已經滾出視窗，強制結束互動
+    const rect = hero.getBoundingClientRect();
+    if (rect.bottom < 0 || rect.top > window.innerHeight) {
+      isHovering = false;
+    }
+
+    if (isHovering && mouseX !== -999) {
+      // 游標在區塊內：平滑漸變移動
+      smoothX += (mouseX - smoothX) * 0.12;
+      smoothY += (mouseY - smoothY) * 0.12;
+
+      const maskString = `radial-gradient(circle ${SPOTLIGHT_R}px at ${smoothX}px ${smoothY}px, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 40%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.3) 80%, rgba(0,0,0,0) 100%)`;
+      revealLayer.style.maskImage = maskString;
+      revealLayer.style.webkitMaskImage = maskString;
+    } else {
+      // 往下滑、離開範圍時：平滑縮小並「徹底完全變回透明枯萎」
+      if (smoothX !== -999) {
+        smoothX += (-999 - smoothX) * 0.15;
+        if (Math.abs(smoothX - (-999)) < 1) {
+          smoothX = -999; smoothY = -999;
+          // 強制回歸完全透明枯萎狀態
+          revealLayer.style.maskImage = 'linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0))';
+          revealLayer.style.webkitMaskImage = 'linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0))';
+        } else {
+          // 動態淡出
+          const maskString = `radial-gradient(circle 0px at ${smoothX}px ${smoothY}px, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)`;
+          revealLayer.style.maskImage = maskString;
+          revealLayer.style.webkitMaskImage = maskString;
+        }
+      }
+    }
+    requestAnimationFrame(updateMask);
+  }
+
+  // 滾輪滑動時即時強制檢查位置
+  window.addEventListener('scroll', () => {
+    const rect = hero.getBoundingClientRect();
+    if (rect.bottom < 100) { // 只要往下滑到快看不見 Hero，立刻重置
+      isHovering = false;
+    }
+  }, { passive: true });
+
+  requestAnimationFrame(updateMask);
 })();
 </script>
 </body>

@@ -676,15 +676,13 @@
 
 <script type="module">
   // ============================================================
-  // FIREBASE 設定 — 商品資料 + 圖片都存在雲端，所有人看到一樣的內容
+  // FIREBASE 設定 — 商品資料存在 Firestore（雲端，所有人看到一樣的內容）
+  // 圖片/影片改用 Cloudinary（不需信用卡，見下方 saveBlob 函式）
   // ============================================================
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
     getFirestore, collection, doc, getDocs, setDoc, deleteDoc
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import {
-    getStorage, ref, uploadBytes, getDownloadURL, deleteObject
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDv4MZ3PoUZ8VhbXxlvJ8-x5ZHLncUgX10",
@@ -698,13 +696,11 @@
 
   const fbApp = initializeApp(firebaseConfig);
   const db = getFirestore(fbApp);
-  const storage = getStorage(fbApp);
 
   // 把這些工具掛到 window，讓下面的一般 <script>（非 module）可以呼叫
   window.fb = {
-    db, storage,
-    collection, doc, getDocs, setDoc, deleteDoc,
-    ref, uploadBytes, getDownloadURL, deleteObject
+    db,
+    collection, doc, getDocs, setDoc, deleteDoc
   };
 
   // 通知主程式 Firebase 已就緒
@@ -713,29 +709,39 @@
 
 <script>
 // ============================================================
-// DB — Firebase Storage for media files
+// DB — Cloudinary for media files（圖片/影片雲端儲存，不需信用卡）
 // ============================================================
-// 圖片/影片上傳到 Firebase Storage，回傳可公開存取的網址
+const CLOUDINARY_CLOUD_NAME = 'diz6pavto';
+const CLOUDINARY_UPLOAD_PRESET = 'maowzwyk';
+
+// 上傳檔案到 Cloudinary，回傳可公開存取的網址
 async function saveBlob(id, blob, type) {
-  const storageRef = window.fb.ref(window.fb.storage, 'media/' + id);
-  await window.fb.uploadBytes(storageRef, blob, { contentType: type });
-  const url = await window.fb.getDownloadURL(storageRef);
-  return url;
+  const isVideo = type && type.startsWith('video/');
+  const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${isVideo ? 'video' : 'image'}/upload`;
+
+  const formData = new FormData();
+  formData.append('file', blob);
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  formData.append('public_id', id);
+
+  const res = await fetch(endpoint, { method: 'POST', body: formData });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error('Cloudinary 上傳失敗: ' + res.status + ' ' + errText);
+  }
+  const data = await res.json();
+  return data.secure_url;
 }
-// 已上傳過的媒體，直接用存在 Firestore 商品資料裡的 url + type
+// 媒體網址已經存在 Firestore 商品資料裡，不需要額外查詢
 async function getBlob(id, knownUrl, knownType) {
   if (knownUrl) return { url: knownUrl, type: knownType };
-  try {
-    const storageRef = window.fb.ref(window.fb.storage, 'media/' + id);
-    const url = await window.fb.getDownloadURL(storageRef);
-    return { url, type: knownType || 'image/jpeg' };
-  } catch { return null; }
+  return null;
 }
+// Cloudinary 免費方案的 unsigned preset 無法從前端直接刪除雲端檔案
+// （刪除需要 API Secret，不能放在前端程式碼裡，否則會被盜用）
+// 這裡只移除商品資料裡的關聯，舊檔案會留在 Cloudinary 帳號裡，不影響使用
 async function deleteBlobsByPrefix(id) {
-  try {
-    const storageRef = window.fb.ref(window.fb.storage, 'media/' + id);
-    await window.fb.deleteObject(storageRef);
-  } catch (e) { /* 檔案可能已不存在，忽略 */ }
+  // no-op：保留雲端檔案，僅移除商品資料關聯（在呼叫端處理）
 }
 
 // ============================================================
@@ -1246,16 +1252,22 @@ async function saveProduct() {
     name: row.querySelector('input[type=text]').value || '預設色'
   }));
 
-  // 上傳新的圖片/影片到 Firebase Storage，取得永久網址
+  // 上傳新的圖片/影片到 Cloudinary，取得永久網址
   showToast('上傳中，請稍候...');
   const mediaRefs = [];
-  for (const m of pendingMedia) {
-    if (m.isNew) {
-      const url = await saveBlob(m.id, m.blob, m.type);
-      mediaRefs.push({ id: m.id, url, type: m.type });
-    } else {
-      mediaRefs.push({ id: m.id, url: m.url, type: m.type });
+  try {
+    for (const m of pendingMedia) {
+      if (m.isNew) {
+        const url = await saveBlob(m.id, m.blob, m.type);
+        mediaRefs.push({ id: m.id, url, type: m.type });
+      } else {
+        mediaRefs.push({ id: m.id, url: m.url, type: m.type });
+      }
     }
+  } catch (e) {
+    console.error(e);
+    showToast('圖片上傳失敗，請檢查網路連線後再試一次');
+    return;
   }
 
   let savedProduct;

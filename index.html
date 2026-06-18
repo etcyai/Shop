@@ -790,7 +790,16 @@ async function loadProductsFromFirebase() {
     list.sort((a,b) => a.id - b.id);
     return list;
   } catch (e) {
-    console.error('Firebase 載入失敗，改用本機資料', e);
+    console.error('Firebase 載入失敗', e);
+    // 重要：讀取雲端失敗時，不要默默改用本機舊資料（那會讓你以為商品消失了）
+    // 改成明確告知，並重試一次
+    alert(
+      '無法連接雲端資料庫，畫面顯示的可能不是最新商品！\n\n' +
+      '常見原因：\n' +
+      '1. 瀏覽器廣告擋截器（AdBlock / uBlock）擋住了 Google 連線\n' +
+      '2. 網路不穩定\n\n' +
+      '請關閉廣告擋截器或換無痕模式後，重新整理頁面再試一次。'
+    );
     return loadProducts();
   }
 }
@@ -1266,7 +1275,7 @@ async function saveProduct() {
     }
   } catch (e) {
     console.error(e);
-    showToast('圖片上傳失敗，請檢查網路連線後再試一次');
+    alert('圖片上傳失敗：' + e.message + '\n\n請檢查網路連線（或瀏覽器擴充功能是否擋住連線）後再試一次。');
     return;
   }
 
@@ -1288,7 +1297,7 @@ async function saveProduct() {
     await saveProductToFirebase(savedProduct);
   } catch (e) {
     console.error(e);
-    showToast('雲端儲存失敗，請檢查網路連線');
+    alert('雲端儲存失敗：' + e.message + '\n\n請檢查網路連線（或瀏覽器擴充功能、防火牆是否擋住 Google 連線）後再試一次。\n\n商品尚未儲存成功，請勿關閉頁面，重新整理後再試。');
     return;
   }
 
@@ -1317,10 +1326,11 @@ async function deleteProduct(id) {
 }
 
 // TOAST
-function showToast(msg) {
+function showToast(msg, duration) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2600);
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(() => t.classList.remove('show'), duration || 2600);
 }
 
 // ============================================================

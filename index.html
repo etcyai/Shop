@@ -449,6 +449,7 @@
 <!-- NAV -->
 <nav>
   <div class="nav-links">
+    <span onclick="navigate('home')">首頁</span>
     <span onclick="setGlobalFilter('全部')">商店</span>
     <span onclick="setGlobalFilter('洋裝')">裝束</span>
     <span onclick="setGlobalFilter('上衣')">上衣</span>
@@ -457,7 +458,6 @@
   </div>
   <div class="nav-icons">
     <i class="ti ti-search"></i>
-    <i class="ti ti-settings" title="後台管理" onclick="requireAdminLogin()" style="opacity:0;pointer-events:none;position:absolute;" id="nav-settings-icon"></i>
     <div class="cart-badge" onclick="navigate('cart')">
       <i class="ti ti-shopping-bag"></i>
       <span class="badge-dot" id="cart-count">0</span>
@@ -1376,11 +1376,6 @@ function submitLogin() {
 
   if (user === ADMIN_USER && pass === ADMIN_PASS) {
     sessionStorage.setItem('gc_admin_auth', 'true');
-    // Show the settings icon now that user is logged in
-    const icon = document.getElementById('nav-settings-icon');
-    icon.style.opacity = '1';
-    icon.style.pointerEvents = 'auto';
-    icon.style.position = '';
     document.getElementById('login-overlay').classList.remove('open');
     navigate('admin');
   } else {

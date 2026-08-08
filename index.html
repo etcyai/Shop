@@ -467,10 +467,10 @@
 
 <!-- SUBNAV -->
 <div class="subnav">
-  <div class="subnav-title" id="subnav-page-title" onclick="handleSecretTap()">GC</div>
+  <div class="subnav-title" id="subnav-page-title">GC</div>
   <div class="subnav-right">
     <span id="subnav-status">全新 2026 夏季系列現正發售</span>
-    <button class="subnav-btn" onclick="navigate('list')">立即選購</button>
+    <button class="subnav-btn" onclick="requireAdminLogin()">SÏGN UP</button>
   </div>
 </div>
 
@@ -649,8 +649,8 @@
 <div class="login-overlay" id="login-overlay">
   <div class="login-box">
     <div class="login-logo">GC Shop</div>
-    <div class="login-title">後台登入</div>
-    <div class="login-sub">請輸入管理員帳號與密碼以繼續。</div>
+    <div class="login-title">登入</div>
+    <div class="login-sub">請輸入帳號與密碼以繼續。</div>
     <div class="login-field">
       <label class="login-label">帳號</label>
       <input class="login-input" id="login-username" type="text" placeholder="輸入帳號" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-password').focus()">
@@ -660,7 +660,7 @@
       <input class="login-input" id="login-password" type="password" placeholder="輸入密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitLogin()">
     </div>
     <div class="login-error" id="login-error"></div>
-    <button class="login-btn" onclick="submitLogin()">登入後台</button>
+    <button class="login-btn" onclick="submitLogin()">Gooo</button>
     <button class="login-cancel" onclick="closeLoginModal()">取消</button>
   </div>
 </div>
@@ -1318,20 +1318,6 @@ function showToast(msg, duration) {
   t.textContent = msg; t.classList.add('show');
   clearTimeout(t._hideTimer);
   t._hideTimer = setTimeout(() => t.classList.remove('show'), duration || 2600);
-}
-
-// ============================================================
-// SECRET ENTRY — 快速點擊左上角 GC 標題 5 次觸發登入
-// ============================================================
-let _tapCount = 0, _tapTimer = null;
-function handleSecretTap() {
-  _tapCount++;
-  clearTimeout(_tapTimer);
-  _tapTimer = setTimeout(() => { _tapCount = 0; }, 1500);
-  if (_tapCount >= 5) {
-    _tapCount = 0;
-    requireAdminLogin();
-  }
 }
 
 // ============================================================

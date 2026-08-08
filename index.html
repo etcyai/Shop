@@ -747,20 +747,7 @@ async function deleteBlobsByPrefix(id) {
 // ============================================================
 // PRODUCT DATA
 // ============================================================
-const DEFAULT_PRODUCTS = [
-  {id:1,name:'霧白立體連身裙',cat:'洋裝',price:3280,emoji:'👗',desc:'使用輕盈的義大利天然天絲面料。獨特的收腰褶皺剪裁，在行走間展現優雅流暢的線條美感。',colors:[{name:'霧白',hex:'#f0ebe3'},{name:'墨黑',hex:'#1d1d1f'}],media:[]},
-  {id:2,name:'細條紋寬版亞麻上衣',cat:'上衣',price:1580,emoji:'👕',desc:'選用透氣性極佳的頂級法式純麻，略為寬鬆的版型，呈現隨性而不失精緻的日常都會風格。',colors:[{name:'奶油白',hex:'#fffdd0'},{name:'燕麥色',hex:'#eae6df'}],media:[]},
-  {id:3,name:'羊毛輕奢雙面大衣',cat:'外套',price:5980,emoji:'🧥',desc:'全手工縫製的雙面羊毛混紡。保暖性能卓越且極致輕盈，剪裁流暢俐落，是冬季不可或缺的永恆單品。',colors:[{name:'燕麥棕',hex:'#d2b48c'},{name:'深邃黑',hex:'#1c1c1e'}],media:[]},
-  {id:4,name:'經典高腰羊毛闊腿褲',cat:'褲裝',price:2880,emoji:'👖',desc:'高腰版型自然拉長身形比例，順垂的抗皺布料確保整日保持俐落挺拔，完美融合舒適感與正式度。',colors:[{name:'碳黑色',hex:'#2c2c2e'},{name:'深鐵灰',hex:'#545456'}],media:[]},
-  {id:5,name:'真絲印花微光上衣',cat:'上衣',price:1980,emoji:'👕',desc:'100% 桑蠶絲製成，自帶奢華內斂的自然光澤。觸感細緻如第二層肌膚，單穿或作為內搭皆顯尊貴。',colors:[{name:'暮玫瑰',hex:'#e0b0ff'},{name:'冷霧藍',hex:'#8ca9c1'}],media:[]},
-  {id:6,name:'法式水洗麻料休閒外套',cat:'外套',price:4580,emoji:'🧥',desc:'經過特殊水洗工藝處理的天然麻料，帶來無與倫比的柔軟手感，輕薄防曬且具備出色的挺度。',colors:[{name:'大地色',hex:'#c4a882'}],media:[]},
-  {id:7,name:'細針織密實迷你短裙',cat:'洋裝',price:2180,emoji:'👗',desc:'高密度細針織工法編織，具備優異的彈性與包覆包臀效果，打造簡練活潑的高級學院風。',colors:[{name:'奶白色',hex:'#f3efe0'}],media:[]},
-  {id:8,name:'復古重磅原色牛仔外套',cat:'外套',price:3980,emoji:'🧥',desc:'選用13.5盎司重磅純棉丹寧，經由時間洗禮能養出獨一無二的色落痕跡，經典工裝剪裁。',colors:[{name:'靛藍色',hex:'#1e2d5a'}],media:[]},
-  {id:9,name:'義大利軟皮革手提托特包',cat:'配件',price:6800,emoji:'👜',desc:'採用頂級頭層牛皮手工打造，內襯空間寬敞實用。簡約流線造型不顯累贅，都會生活必備。',colors:[{name:'焦糖棕',hex:'#855e42'},{name:'極致黑',hex:'#111111'}],media:[]},
-  {id:10,name:'桑蠶絲斜紋手工方巾',cat:'配件',price:980,emoji:'🧣',desc:'由資深匠人手工捲邊，幾何摩登線條印花，可作為頸巾、髮帶或包款配飾。',colors:[{name:'經典多色',hex:'#f066cc'}],media:[]},
-  {id:11,name:'精紡抗皺修身西裝褲',cat:'褲裝',price:3280,emoji:'👖',desc:'專為亞洲身形微調的微錐形結構，精紡高張力面料兼顧高活動度與挺拔視覺。',colors:[{name:'深灰色',hex:'#3a3a3c'}],media:[]},
-  {id:12,name:'細緻蕾絲法式透膚上衣',cat:'上衣',price:2480,emoji:'👕',desc:'極其精細的古董感蕾絲織紋，透光不透肉的巧妙層次演繹，優雅透露隱約的性感。',colors:[{name:'米白色',hex:'#fcfaf2'}],media:[]}
-];
+const DEFAULT_PRODUCTS = [];
 
 function loadProducts() {
   try {

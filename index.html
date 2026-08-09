@@ -834,7 +834,8 @@
     getFirestore, collection, doc, getDocs, setDoc, deleteDoc
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
-    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    getAuth, setPersistence, browserLocalPersistence,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword,
     onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -851,6 +852,7 @@
   const fbApp = initializeApp(firebaseConfig);
   const db = getFirestore(fbApp);
   const auth = getAuth(fbApp);
+  setPersistence(auth, browserLocalPersistence).catch((e) => console.error('無法設定登入狀態保存方式', e));
 
   // 把這些工具掛到 window，讓下面的一般 <script>（非 module）可以呼叫
   window.fb = {
@@ -1503,13 +1505,14 @@ function setCauthMode(mode) {
 async function handleCustomerSignUp(e) {
   e.preventDefault();
   const name = document.getElementById('su-name').value.trim();
-  const email = document.getElementById('su-email').value.trim();
+  const email = document.getElementById('su-email').value.trim().toLowerCase();
   const pass = document.getElementById('su-password').value;
   const errEl = document.getElementById('su-error');
   const btn = document.getElementById('su-submit');
   errEl.textContent = '';
 
   if (!window.fb || !window.fb.auth) { errEl.textContent = '雲端服務尚未就緒，請稍候再試。'; return false; }
+  if (btn.disabled) return false; // 防止連點造成重複送出
 
   btn.disabled = true; btn.textContent = '註冊中...';
   try {
@@ -1529,13 +1532,14 @@ async function handleCustomerSignUp(e) {
 
 async function handleCustomerSignIn(e) {
   e.preventDefault();
-  const email = document.getElementById('si-email').value.trim();
+  const email = document.getElementById('si-email').value.trim().toLowerCase();
   const pass = document.getElementById('si-password').value;
   const errEl = document.getElementById('si-error');
   const btn = document.getElementById('si-submit');
   errEl.textContent = '';
 
   if (!window.fb || !window.fb.auth) { errEl.textContent = '雲端服務尚未就緒，請稍候再試。'; return false; }
+  if (btn.disabled) return false; // 防止連點造成重複送出
 
   btn.disabled = true; btn.textContent = '登入中...';
   try {
@@ -1551,7 +1555,7 @@ async function handleCustomerSignIn(e) {
 }
 
 async function handleForgotPassword() {
-  const email = document.getElementById('si-email').value.trim();
+  const email = document.getElementById('si-email').value.trim().toLowerCase();
   const errEl = document.getElementById('si-error');
   if (!email) { errEl.textContent = '請先輸入您的 Email，再點擊忘記密碼。'; return; }
   try {
@@ -1565,6 +1569,10 @@ async function handleForgotPassword() {
 async function handleLogout() {
   try {
     await window.fb.signOut(window.fb.auth);
+    const activePage = document.querySelector('.page.active');
+    if (activePage && activePage.id === 'page-admin') {
+      navigate('home');
+    }
     showToast('已登出');
   } catch (err) {
     console.error(err);
@@ -1577,9 +1585,9 @@ function customerAuthErrorMessage(err) {
     'auth/email-already-in-use': '這個 Email 已經被註冊過了，請直接登入。',
     'auth/invalid-email': 'Email 格式不正確。',
     'auth/weak-password': '密碼強度不足，請至少輸入 6 碼。',
-    'auth/wrong-password': '密碼錯誤，請再試一次。',
+    'auth/wrong-password': '帳號或密碼錯誤，請再試一次。',
     'auth/invalid-credential': '帳號或密碼錯誤，請再試一次。',
-    'auth/user-not-found': '找不到這個帳號，請確認 Email 或先註冊。',
+    'auth/user-not-found': '帳號或密碼錯誤，請再試一次。',
     'auth/too-many-requests': '嘗試次數過多，請稍後再試。',
     'auth/unauthorized-domain': '此網域尚未被允許使用登入功能，請聯絡商店管理員。',
     'auth/network-request-failed': '網路連線失敗，請檢查網路後再試一次。'

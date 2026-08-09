@@ -431,6 +431,105 @@
   .login-cancel { width: 100%; padding: 12px; background: none; border: none; font-size: 14px; color: var(--sf-text-grey); cursor: pointer; margin-top: 8px; }
   .login-cancel:hover { color: var(--sf-dark); }
 
+  /* ============================
+     CUSTOMER AUTH — SIGN IN / SÏGN UP SLIDING PANEL
+  ============================*/
+  .cauth-overlay {
+    display: none; position: fixed; inset: 0; z-index: 3500;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(8px);
+    align-items: center; justify-content: center;
+  }
+  .cauth-overlay.open { display: flex; }
+  .cauth-close {
+    position: absolute; top: 28px; right: 32px; z-index: 3600;
+    width: 38px; height: 38px; border-radius: 50%; border: none;
+    background: rgba(255,255,255,0.15); color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .cauth-close:hover { background: rgba(255,255,255,0.28); }
+
+  .cauth-container {
+    position: relative; width: 780px; max-width: 94vw; min-height: 500px;
+    background: #fff; border-radius: 24px; overflow: hidden;
+    box-shadow: 0 30px 90px rgba(0,0,0,0.35);
+    animation: modalIn 0.35s cubic-bezier(.25,1,.5,1);
+  }
+
+  .cauth-form-panel {
+    position: absolute; top: 0; height: 100%; width: 60%;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.6s cubic-bezier(.65,0,.35,1); padding: 2.5rem 3rem;
+  }
+  .cauth-signup-panel { left: 0; opacity: 0; z-index: 1; }
+  .cauth-signin-panel { left: 0; z-index: 2; }
+
+  .cauth-container.right-active .cauth-signin-panel { transform: translateX(100%); opacity: 0; z-index: 1; }
+  .cauth-container.right-active .cauth-signup-panel { transform: translateX(66.6%); opacity: 1; z-index: 5; }
+  .cauth-container.right-active .cauth-overlay-panel { transform: translateX(-100%); }
+  .cauth-container.right-active .cauth-overlay-panel .cauth-overlay-inner { transform: translateX(50%); }
+  .cauth-container.right-active .cauth-overlay-left { transform: translateX(20%); }
+  .cauth-container.right-active .cauth-overlay-right { transform: translateX(20%); }
+
+  .cauth-form { width: 100%; max-width: 320px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .cauth-heading { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 1rem; color: var(--sf-dark); }
+  .cauth-socials { display: flex; gap: 10px; margin-bottom: 1rem; }
+  .cauth-social-btn {
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid #d2d2d7; background: #fff;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; color: var(--sf-dark);
+    transition: all 0.2s;
+  }
+  .cauth-social-btn:hover { background: var(--sf-grey); }
+  .cauth-or { font-size: 12px; color: var(--sf-text-grey); margin-bottom: 1.25rem; }
+  .cauth-input {
+    width: 100%; padding: 13px 16px; margin-bottom: 10px; border: none; background: var(--sf-grey);
+    border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; transition: box-shadow 0.2s;
+  }
+  .cauth-input:focus { box-shadow: 0 0 0 3px rgba(0,102,204,0.15); }
+  .cauth-forgot { font-size: 12px; color: var(--sf-text-grey); margin: 6px 0 4px; cursor: pointer; }
+  .cauth-forgot:hover { color: var(--sf-blue); }
+  .cauth-error { font-size: 12px; color: var(--sf-red); min-height: 16px; margin-top: 4px; }
+  .cauth-submit {
+    margin-top: 14px; padding: 13px 40px; border-radius: 980px; border: none;
+    background: var(--sf-dark); color: #fff; font-size: 14px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s;
+  }
+  .cauth-submit:hover { opacity: 0.85; }
+  .cauth-submit:disabled { opacity: 0.5; cursor: default; }
+
+  .cauth-overlay-panel {
+    position: absolute; top: 0; left: 60%; width: 40%; height: 100%;
+    overflow: hidden; transition: transform 0.6s cubic-bezier(.65,0,.35,1); z-index: 10;
+  }
+  .cauth-overlay-inner {
+    position: relative; left: -150%; width: 250%; height: 100%;
+    background: linear-gradient(135deg, #1d1d1f 0%, #0066cc 100%);
+    display: flex; transition: transform 0.6s cubic-bezier(.65,0,.35,1);
+  }
+  .cauth-overlay-side {
+    width: 50%; height: 100%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 2.5rem 2.5rem; text-align: center;
+    transition: transform 0.6s cubic-bezier(.65,0,.35,1);
+  }
+  .cauth-overlay-left { transform: translateX(-20%); }
+  .cauth-overlay-text { font-size: 14px; color: rgba(255,255,255,0.85); line-height: 1.7; margin-bottom: 1.75rem; }
+  .cauth-ghost-btn {
+    padding: 11px 34px; border-radius: 980px; border: 1px solid #fff; background: transparent;
+    color: #fff; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .cauth-ghost-btn:hover { background: rgba(255,255,255,0.15); }
+
+  .cauth-mobile-toggle { display: none; text-align: center; font-size: 13px; color: var(--sf-blue); margin-top: 1rem; cursor: pointer; }
+  @media (max-width: 768px) {
+    .cauth-container { min-height: 560px; border-radius: 20px; }
+    .cauth-overlay-panel { display: none; }
+    .cauth-form-panel { position: relative; width: 100%; opacity: 1; transform: none; z-index: 1; padding: 2.5rem 1.5rem; }
+    .cauth-signup-panel { display: none; }
+    .cauth-container.right-active .cauth-signup-panel { display: flex; }
+    .cauth-container.right-active .cauth-signin-panel { display: none; }
+    .cauth-mobile-toggle { display: block; }
+  }
+
   /* RESPONSIVE */
   @media (max-width: 768px) {
     nav { padding: 0 1.25rem; }
@@ -470,7 +569,8 @@
   <div class="subnav-title" id="subnav-page-title">GC</div>
   <div class="subnav-right">
     <span id="subnav-status">全新 2026 夏季系列現正發售</span>
-    <button class="subnav-btn" onclick="requireAdminLogin()">SÏGN UP</button>
+    <span id="customer-account-slot" style="display:none;font-size:13px;color:var(--sf-dark);cursor:pointer;" onclick="handleLogout()"></span>
+    <button class="subnav-btn" id="customer-auth-btn" onclick="openCustomerAuth()">SÏGN UP</button>
   </div>
 </div>
 
@@ -645,23 +745,65 @@
   </div>
 </div>
 
-<!-- LOGIN MODAL -->
-<div class="login-overlay" id="login-overlay">
-  <div class="login-box">
-    <div class="login-logo">GC Shop</div>
-    <div class="login-title">登入</div>
-    <div class="login-sub">請輸入帳號與密碼以繼續。</div>
-    <div class="login-field">
-      <label class="login-label">帳號</label>
-      <input class="login-input" id="login-username" type="text" placeholder="輸入帳號" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-password').focus()">
+<!-- CUSTOMER AUTH MODAL -->
+<div class="cauth-overlay" id="cauth-overlay">
+  <button class="cauth-close" onclick="closeCustomerAuth()"><i class="ti ti-x"></i></button>
+  <div class="cauth-container" id="cauth-container">
+
+    <!-- SÏGN UP FORM -->
+    <div class="cauth-form-panel cauth-signup-panel">
+      <form class="cauth-form" onsubmit="return handleCustomerSignUp(event)">
+        <h2 class="cauth-heading">建立帳號</h2>
+        <div class="cauth-socials">
+          <button type="button" class="cauth-social-btn"><i class="ti ti-brand-google"></i></button>
+          <button type="button" class="cauth-social-btn"><i class="ti ti-brand-facebook"></i></button>
+          <button type="button" class="cauth-social-btn"><i class="ti ti-brand-instagram"></i></button>
+        </div>
+        <p class="cauth-or">或使用您的 Email 註冊</p>
+        <input class="cauth-input" type="text" id="su-name" placeholder="姓名" required>
+        <input class="cauth-input" type="email" id="su-email" placeholder="Email" required>
+        <input class="cauth-input" type="password" id="su-password" placeholder="密碼（至少 6 碼）" required minlength="6">
+        <div class="cauth-error" id="su-error"></div>
+        <button type="submit" class="cauth-submit" id="su-submit">註冊</button>
+        <span class="cauth-mobile-toggle" onclick="setCauthMode('signin')">已經有帳號了？點此登入</span>
+      </form>
     </div>
-    <div class="login-field">
-      <label class="login-label">密碼</label>
-      <input class="login-input" id="login-password" type="password" placeholder="輸入密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitLogin()">
+
+    <!-- SIGN IN FORM -->
+    <div class="cauth-form-panel cauth-signin-panel">
+      <form class="cauth-form" onsubmit="return handleCustomerSignIn(event)">
+        <h2 class="cauth-heading">登入</h2>
+        <div class="cauth-socials">
+          <button type="button" class="cauth-social-btn"><i class="ti ti-brand-google"></i></button>
+          <button type="button" class="cauth-social-btn"><i class="ti ti-brand-facebook"></i></button>
+          <button type="button" class="cauth-social-btn"><i class="ti ti-brand-instagram"></i></button>
+        </div>
+        <p class="cauth-or">或使用 Email 密碼登入</p>
+        <input class="cauth-input" type="email" id="si-email" placeholder="Email" required>
+        <input class="cauth-input" type="password" id="si-password" placeholder="密碼" required>
+        <a class="cauth-forgot" onclick="handleForgotPassword()">忘記密碼？</a>
+        <div class="cauth-error" id="si-error"></div>
+        <button type="submit" class="cauth-submit" id="si-submit">登入</button>
+        <span class="cauth-mobile-toggle" onclick="setCauthMode('signup')">還沒有帳號？點此註冊</span>
+      </form>
     </div>
-    <div class="login-error" id="login-error"></div>
-    <button class="login-btn" onclick="submitLogin()">Gooo</button>
-    <button class="login-cancel" onclick="closeLoginModal()">取消</button>
+
+    <!-- SLIDING OVERLAY -->
+    <div class="cauth-overlay-panel">
+      <div class="cauth-overlay-inner">
+        <div class="cauth-overlay-side cauth-overlay-left">
+          <h2 class="cauth-heading" style="color:#fff">歡迎回來！</h2>
+          <p class="cauth-overlay-text">已經有帳號了嗎？登入以繼續選購。</p>
+          <button type="button" class="cauth-ghost-btn" onclick="setCauthMode('signin')">登入</button>
+        </div>
+        <div class="cauth-overlay-side cauth-overlay-right">
+          <h2 class="cauth-heading" style="color:#fff">您好，朋友！</h2>
+          <p class="cauth-overlay-text">註冊帳號即可享有專屬優惠與收藏清單。</p>
+          <button type="button" class="cauth-ghost-btn" onclick="setCauthMode('signup')">註冊</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -683,6 +825,10 @@
   import {
     getFirestore, collection, doc, getDocs, setDoc, deleteDoc
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAkHSAQCOdbjqlzNVFQQGnkahD7Jz6XG3U",
@@ -696,12 +842,20 @@
 
   const fbApp = initializeApp(firebaseConfig);
   const db = getFirestore(fbApp);
+  const auth = getAuth(fbApp);
 
   // 把這些工具掛到 window，讓下面的一般 <script>（非 module）可以呼叫
   window.fb = {
     db,
-    collection, doc, getDocs, setDoc, deleteDoc
+    collection, doc, getDocs, setDoc, deleteDoc,
+    auth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail
   };
+
+  // 客戶登入狀態改變時（登入/登出/剛載入頁面時）通知主程式
+  onAuthStateChanged(auth, (user) => {
+    window.dispatchEvent(new CustomEvent('customer-auth-changed', { detail: { user } }));
+  });
 
   // 通知主程式 Firebase 已就緒
   window.dispatchEvent(new Event('fb-ready'));
@@ -1321,82 +1475,153 @@ function showToast(msg, duration) {
 }
 
 // ============================================================
-// AUTH
+// CUSTOMER AUTH — SIGN IN / SÏGN UP
 // ============================================================
-const ADMIN_USER = 'etcyai';
-const ADMIN_PASS = 'Roy671220';
+function openCustomerAuth(mode) {
+  document.getElementById('cauth-overlay').classList.add('open');
+  setCauthMode(mode || 'signin');
+  document.getElementById('su-error').textContent = '';
+  document.getElementById('si-error').textContent = '';
+}
+function closeCustomerAuth() {
+  document.getElementById('cauth-overlay').classList.remove('open');
+}
+function setCauthMode(mode) {
+  const box = document.getElementById('cauth-container');
+  if (mode === 'signup') box.classList.add('right-active');
+  else box.classList.remove('right-active');
+}
+
+async function handleCustomerSignUp(e) {
+  e.preventDefault();
+  const name = document.getElementById('su-name').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  const pass = document.getElementById('su-password').value;
+  const errEl = document.getElementById('su-error');
+  const btn = document.getElementById('su-submit');
+  errEl.textContent = '';
+
+  if (!window.fb || !window.fb.auth) { errEl.textContent = '雲端服務尚未就緒，請稍候再試。'; return false; }
+
+  btn.disabled = true; btn.textContent = '註冊中...';
+  try {
+    const cred = await window.fb.createUserWithEmailAndPassword(window.fb.auth, email, pass);
+    if (name) {
+      await window.fb.updateProfile(cred.user, { displayName: name });
+    }
+    closeCustomerAuth();
+    showToast('註冊成功，歡迎加入 GC Shop ✓');
+  } catch (err) {
+    errEl.textContent = customerAuthErrorMessage(err);
+  } finally {
+    btn.disabled = false; btn.textContent = '註冊';
+  }
+  return false;
+}
+
+async function handleCustomerSignIn(e) {
+  e.preventDefault();
+  const email = document.getElementById('si-email').value.trim();
+  const pass = document.getElementById('si-password').value;
+  const errEl = document.getElementById('si-error');
+  const btn = document.getElementById('si-submit');
+  errEl.textContent = '';
+
+  if (!window.fb || !window.fb.auth) { errEl.textContent = '雲端服務尚未就緒，請稍候再試。'; return false; }
+
+  btn.disabled = true; btn.textContent = '登入中...';
+  try {
+    await window.fb.signInWithEmailAndPassword(window.fb.auth, email, pass);
+    closeCustomerAuth();
+    showToast('登入成功，歡迎回來 ✓');
+  } catch (err) {
+    errEl.textContent = customerAuthErrorMessage(err);
+  } finally {
+    btn.disabled = false; btn.textContent = '登入';
+  }
+  return false;
+}
+
+async function handleForgotPassword() {
+  const email = document.getElementById('si-email').value.trim();
+  const errEl = document.getElementById('si-error');
+  if (!email) { errEl.textContent = '請先輸入您的 Email，再點擊忘記密碼。'; return; }
+  try {
+    await window.fb.sendPasswordResetEmail(window.fb.auth, email);
+    showToast('重設密碼信已寄出，請至信箱查收');
+  } catch (err) {
+    errEl.textContent = customerAuthErrorMessage(err);
+  }
+}
+
+async function handleLogout() {
+  try {
+    await window.fb.signOut(window.fb.auth);
+    showToast('已登出');
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function customerAuthErrorMessage(err) {
+  const code = err && err.code || '';
+  const map = {
+    'auth/email-already-in-use': '這個 Email 已經被註冊過了，請直接登入。',
+    'auth/invalid-email': 'Email 格式不正確。',
+    'auth/weak-password': '密碼強度不足，請至少輸入 6 碼。',
+    'auth/wrong-password': '密碼錯誤，請再試一次。',
+    'auth/invalid-credential': '帳號或密碼錯誤，請再試一次。',
+    'auth/user-not-found': '找不到這個帳號，請確認 Email 或先註冊。',
+    'auth/too-many-requests': '嘗試次數過多，請稍後再試。',
+    'auth/unauthorized-domain': '此網域尚未被允許使用登入功能，請聯絡商店管理員。',
+    'auth/network-request-failed': '網路連線失敗，請檢查網路後再試一次。'
+  };
+  return map[code] || ('發生錯誤：' + (err && err.message ? err.message : '請稍後再試'));
+}
+
+// 客戶登入狀態改變時，更新右上角顯示
+window.addEventListener('customer-auth-changed', (e) => {
+  currentCustomerUser = e.detail.user;
+  const user = e.detail.user;
+  const slot = document.getElementById('customer-account-slot');
+  const btn = document.getElementById('customer-auth-btn');
+  if (user) {
+    const isAdmin = user.email === ADMIN_EMAIL;
+    slot.innerHTML = '👤 ' + (user.displayName || user.email)
+      + (isAdmin ? ' <span style="color:var(--sf-blue);cursor:pointer;text-decoration:underline;" onclick="event.stopPropagation();navigate(\'admin\')">後台管理</span>' : '')
+      + ' ｜ 登出';
+    slot.style.display = 'inline-block';
+    btn.style.display = 'none';
+  } else {
+    slot.style.display = 'none';
+    btn.style.display = 'inline-block';
+  }
+});
+
+// ============================================================
+// AUTH — 管理員身份現在直接沿用客戶的 SÏGN UP／登入系統
+// 只有這組帳號登入時才視為管理員，能進入後台
+// ============================================================
+const ADMIN_EMAIL = 'etcyai@outlook.com';
+let currentCustomerUser = null;
 
 function isAdminLoggedIn() {
-  return sessionStorage.getItem('gc_admin_auth') === 'true';
+  return !!(currentCustomerUser && currentCustomerUser.email === ADMIN_EMAIL);
 }
 
-function requireAdminLogin() {
-  if (isAdminLoggedIn()) {
-    navigate('admin');
-  } else {
-    document.getElementById('login-username').value = '';
-    document.getElementById('login-password').value = '';
-    document.getElementById('login-error').textContent = '';
-    document.getElementById('login-overlay').classList.add('open');
-    setTimeout(() => document.getElementById('login-username').focus(), 100);
-  }
-}
-
-function submitLogin() {
-  const user = document.getElementById('login-username').value.trim();
-  const pass = document.getElementById('login-password').value;
-  const err = document.getElementById('login-error');
-
-  if (user === ADMIN_USER && pass === ADMIN_PASS) {
-    sessionStorage.setItem('gc_admin_auth', 'true');
-    document.getElementById('login-overlay').classList.remove('open');
-    navigate('admin');
-  } else {
-    err.textContent = '帳號或密碼錯誤，請再試一次。';
-    document.getElementById('login-password').value = '';
-    document.getElementById('login-password').focus();
-  }
-}
-
-function closeLoginModal() {
-  document.getElementById('login-overlay').classList.remove('open');
-}
-
-// Guard: if someone directly calls navigate('admin') without auth, redirect
+// Guard: if someone directly calls navigate('admin') without the admin account logged in, redirect
 const _origNavigate = navigate;
 navigate = function(page) {
   if (page === 'admin' && !isAdminLoggedIn()) {
-    requireAdminLogin();
+    showToast('請先用管理員帳號登入');
+    openCustomerAuth('signin');
     return;
   }
   _origNavigate(page);
 };
 
-// Secret trigger: triple-click on nav logo area (invisible to normal users)
-let secretClickCount = 0, secretTimer = null;
-document.querySelector('.nav-links').addEventListener('click', function(e) {
-  if (e.target.tagName !== 'SPAN') return;
-  // Only trigger on clicking the "商店" link 3 times fast
-}, false);
-
-// Restore icon if already logged in this session
-if (isAdminLoggedIn()) {
-  document.addEventListener('DOMContentLoaded', () => {
-    const icon = document.getElementById('nav-settings-icon');
-    if (icon) { icon.style.opacity = '1'; icon.style.pointerEvents = 'auto'; icon.style.position = ''; }
-  });
-}
-
 // INIT
 updateBadge();
-
-// Restore settings icon if session is still active
-(function() {
-  if (isAdminLoggedIn()) {
-    const icon = document.getElementById('nav-settings-icon');
-    if (icon) { icon.style.opacity = '1'; icon.style.pointerEvents = 'auto'; icon.style.position = ''; }
-  }
-})();
 // HERO 聚光燈特效
 // HERO 聚光燈特效（超流暢 GPU 硬件加速 + 4K 超高清 + 自動滑出重置）
 // HERO 聚光燈特效（完美修正滑出重置與往下滑動問題）

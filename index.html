@@ -432,7 +432,7 @@
   .login-cancel:hover { color: var(--sf-dark); }
 
   /* ============================
-     CUSTOMER AUTH — SIGN IN / SÏGN UP SLIDING PANEL
+     CUSTOMER AUTH — SIGN IN / SIGN UP SLIDING PANEL
   ============================*/
   .cauth-overlay {
     display: none; position: fixed; inset: 0; z-index: 3500;
@@ -458,17 +458,23 @@
   .cauth-form-panel {
     position: absolute; top: 0; height: 100%; width: 60%;
     display: flex; align-items: center; justify-content: center;
-    transition: all 0.6s cubic-bezier(.65,0,.35,1); padding: 2.5rem 3rem;
+    transition: transform 0.6s cubic-bezier(.65,0,.35,1); padding: 2.5rem 3rem;
+    will-change: transform; backface-visibility: hidden;
   }
   .cauth-signup-panel { left: 0; opacity: 0; z-index: 1; }
   .cauth-signin-panel { left: 0; z-index: 2; }
 
   .cauth-container.right-active .cauth-signin-panel { transform: translateX(100%); opacity: 0; z-index: 1; }
-  .cauth-container.right-active .cauth-signup-panel { transform: translateX(66.6%); opacity: 1; z-index: 5; }
+  .cauth-container.right-active .cauth-signup-panel { transform: translateX(66.6%); opacity: 1; z-index: 5; animation: cauthReveal 0.6s; }
   .cauth-container.right-active .cauth-overlay-panel { transform: translateX(-100%); }
   .cauth-container.right-active .cauth-overlay-panel .cauth-overlay-inner { transform: translateX(50%); }
   .cauth-container.right-active .cauth-overlay-left { transform: translateX(20%); }
   .cauth-container.right-active .cauth-overlay-right { transform: translateX(20%); }
+
+  @keyframes cauthReveal {
+    0%, 49.9% { opacity: 0; z-index: 1; }
+    50%, 100% { opacity: 1; z-index: 5; }
+  }
 
   .cauth-form { width: 100%; max-width: 320px; display: flex; flex-direction: column; align-items: center; text-align: center; }
   .cauth-heading { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 1rem; color: var(--sf-dark); }
@@ -481,8 +487,9 @@
   .cauth-social-btn:hover { background: var(--sf-grey); }
   .cauth-or { font-size: 12px; color: var(--sf-text-grey); margin-bottom: 1.25rem; }
   .cauth-input {
-    width: 100%; padding: 13px 16px; margin-bottom: 10px; border: none; background: var(--sf-grey);
+    width: 100%; box-sizing: border-box; padding: 13px 16px; margin-bottom: 10px; border: none; background: var(--sf-grey);
     border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; transition: box-shadow 0.2s;
+    text-align: left; direction: ltr; white-space: normal;
   }
   .cauth-input:focus { box-shadow: 0 0 0 3px rgba(0,102,204,0.15); }
   .cauth-forgot { font-size: 12px; color: var(--sf-text-grey); margin: 6px 0 4px; cursor: pointer; }
@@ -570,7 +577,7 @@
   <div class="subnav-right">
     <span id="subnav-status">全新 2026 夏季系列現正發售</span>
     <span id="customer-account-slot" style="display:none;font-size:13px;color:var(--sf-dark);cursor:pointer;" onclick="handleLogout()"></span>
-    <button class="subnav-btn" id="customer-auth-btn" onclick="openCustomerAuth()">SÏGN UP</button>
+    <button class="subnav-btn" id="customer-auth-btn" onclick="openCustomerAuth()">SIGN UP</button>
   </div>
 </div>
 
@@ -750,7 +757,7 @@
   <button class="cauth-close" onclick="closeCustomerAuth()"><i class="ti ti-x"></i></button>
   <div class="cauth-container" id="cauth-container">
 
-    <!-- SÏGN UP FORM -->
+    <!-- SIGN UP FORM -->
     <div class="cauth-form-panel cauth-signup-panel">
       <form class="cauth-form" onsubmit="return handleCustomerSignUp(event)">
         <h2 class="cauth-heading">建立帳號</h2>
@@ -1475,7 +1482,7 @@ function showToast(msg, duration) {
 }
 
 // ============================================================
-// CUSTOMER AUTH — SIGN IN / SÏGN UP
+// CUSTOMER AUTH — SIGN IN / SIGN UP
 // ============================================================
 function openCustomerAuth(mode) {
   document.getElementById('cauth-overlay').classList.add('open');
@@ -1599,7 +1606,7 @@ window.addEventListener('customer-auth-changed', (e) => {
 });
 
 // ============================================================
-// AUTH — 管理員身份現在直接沿用客戶的 SÏGN UP／登入系統
+// AUTH — 管理員身份現在直接沿用客戶的 SIGN UP／登入系統
 // 只有這組帳號登入時才視為管理員，能進入後台
 // ============================================================
 const ADMIN_EMAIL = 'etcyai@outlook.com';

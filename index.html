@@ -432,57 +432,39 @@
   .login-cancel:hover { color: var(--sf-dark); }
 
   /* ============================
-     CUSTOMER AUTH — SIGN IN / SIGN UP SLIDING PANEL
+     CUSTOMER AUTH — SIGN IN / SIGN UP (簡約單卡版)
   ============================*/
   .cauth-overlay {
     display: none; position: fixed; inset: 0; z-index: 3500;
     background: rgba(0,0,0,0.55); backdrop-filter: blur(8px);
-    align-items: center; justify-content: center;
+    align-items: center; justify-content: center; padding: 1.5rem;
   }
   .cauth-overlay.open { display: flex; }
   .cauth-close {
-    position: absolute; top: 28px; right: 32px; z-index: 3600;
-    width: 38px; height: 38px; border-radius: 50%; border: none;
-    background: rgba(255,255,255,0.15); color: #fff; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; font-size: 18px;
+    position: absolute; top: 18px; right: 18px; z-index: 10;
+    width: 34px; height: 34px; border-radius: 50%; border: none;
+    background: var(--sf-grey); color: var(--sf-dark); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
   }
-  .cauth-close:hover { background: rgba(255,255,255,0.28); }
+  .cauth-close:hover { background: #e5e5ea; }
 
   .cauth-container {
-    position: relative; width: 780px; max-width: 94vw; min-height: 500px;
-    background: #fff; border-radius: 24px; overflow: hidden;
+    position: relative; width: 420px; max-width: 100%;
+    background: #fff; border-radius: 24px;
     box-shadow: 0 30px 90px rgba(0,0,0,0.35);
-    animation: modalIn 0.35s cubic-bezier(.25,1,.5,1);
+    animation: modalIn 0.3s cubic-bezier(.25,1,.5,1);
+    padding: 3rem 2.5rem 2.5rem;
   }
 
-  .cauth-form-panel {
-    position: absolute; top: 0; height: 100%; width: 50%;
-    display: flex; align-items: center; justify-content: center;
-    transition: transform 0.6s cubic-bezier(.65,0,.35,1); padding: 2.5rem 3rem;
-    will-change: transform; backface-visibility: hidden;
-  }
-  .cauth-signup-panel { left: 0; opacity: 0; z-index: 1; }
-  .cauth-signin-panel { left: 0; z-index: 2; }
+  .cauth-panel { display: flex; flex-direction: column; align-items: center; text-align: center; }
 
-  .cauth-container.right-active .cauth-signin-panel { transform: translateX(100%); opacity: 0; z-index: 1; }
-  .cauth-container.right-active .cauth-signup-panel { transform: translateX(100%); opacity: 1; z-index: 5; animation: cauthReveal 0.6s; }
-  .cauth-container.right-active .cauth-overlay-panel { transform: translateX(-100%); }
-  .cauth-container.right-active .cauth-overlay-panel .cauth-overlay-inner { transform: translateX(50%); }
-  .cauth-container.right-active .cauth-overlay-left { transform: translateX(0); }
-  .cauth-container.right-active .cauth-overlay-right { transform: translateX(20%); }
-
-  @keyframes cauthReveal {
-    0%, 49.9% { opacity: 0; z-index: 1; }
-    50%, 100% { opacity: 1; z-index: 5; }
-  }
-
-  .cauth-form { width: 100%; max-width: 320px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-  .cauth-heading { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 1rem; color: var(--sf-dark); }
-  .cauth-socials { display: flex; gap: 10px; margin-bottom: 1rem; width: 100%; }
+  .cauth-form { width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .cauth-heading { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 1.5rem; color: var(--sf-dark); }
   .cauth-google-btn {
     width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid #d2d2d7; background: #fff;
     display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
     font-size: 14px; font-weight: 500; color: var(--sf-dark); font-family: inherit; transition: all 0.2s;
+    margin-bottom: 1.25rem;
   }
   .cauth-google-btn i { font-size: 17px; color: #4285F4; }
   .cauth-google-btn:hover { background: var(--sf-grey); }
@@ -498,50 +480,19 @@
   .cauth-forgot:hover { color: var(--sf-blue); }
   .cauth-error { font-size: 12px; color: var(--sf-red); min-height: 16px; margin-top: 4px; }
   .cauth-submit {
-    margin-top: 14px; padding: 13px 40px; border-radius: 980px; border: none;
-    background: var(--sf-dark); color: #fff; font-size: 14px; font-weight: 600;
-    letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s;
+    width: 100%; margin-top: 14px; padding: 13px 40px; border-radius: 10px; border: none;
+    background: var(--sf-dark); color: #fff; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.2s;
   }
   .cauth-submit:hover { opacity: 0.85; }
   .cauth-submit:disabled { opacity: 0.5; cursor: default; }
-
-  .cauth-overlay-panel {
-    position: absolute; top: 0; left: 50%; width: 50%; height: 100%;
-    overflow: hidden; transition: transform 0.6s cubic-bezier(.65,0,.35,1); z-index: 10;
-  }
-  .cauth-overlay-inner {
-    position: relative; left: -100%; width: 200%; height: 100%;
-    background: linear-gradient(160deg, #08090c 0%, #0f1c3a 45%, #0066cc 100%);
-    display: flex; transform: translateX(0); transition: transform 0.6s cubic-bezier(.65,0,.35,1);
-  }
-  .cauth-overlay-side {
-    width: 50%; height: 100%; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; padding: 2.5rem 2.5rem; text-align: center;
-    transition: transform 0.6s cubic-bezier(.65,0,.35,1);
-  }
-  .cauth-overlay-left { transform: translateX(-20%); }
-  .cauth-overlay-right { transform: translateX(0); }
-  .cauth-overlay-text { font-size: 14px; color: rgba(255,255,255,0.85); line-height: 1.7; margin-bottom: 1.75rem; }
-  .cauth-ghost-btn {
-    padding: 11px 34px; border-radius: 980px; border: 1px solid #fff; background: transparent;
-    color: #fff; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
-    transition: all 0.2s;
-  }
-  .cauth-ghost-btn:hover { background: rgba(255,255,255,0.15); }
-
-  .cauth-mobile-toggle { display: none; text-align: center; font-size: 13px; color: var(--sf-blue); margin-top: 1rem; cursor: pointer; }
-  @media (max-width: 768px) {
-    .cauth-container { min-height: 560px; border-radius: 20px; }
-    .cauth-overlay-panel { display: none; }
-    .cauth-form-panel { position: relative; width: 100%; opacity: 1; transform: none; z-index: 1; padding: 2.5rem 1.5rem; }
-    .cauth-signup-panel { display: none; }
-    .cauth-container.right-active .cauth-signup-panel { display: flex; }
-    .cauth-container.right-active .cauth-signin-panel { display: none; }
-    .cauth-mobile-toggle { display: block; }
-  }
+  .cauth-switch { font-size: 13px; color: var(--sf-text-grey); margin-top: 1.5rem; }
+  .cauth-switch a { color: var(--sf-blue); cursor: pointer; }
+  .cauth-switch a:hover { text-decoration: underline; }
 
   /* RESPONSIVE */
   @media (max-width: 768px) {
+    .cauth-container { padding: 2.5rem 1.5rem 2rem; }
     nav { padding: 0 1.25rem; }
     .nav-links { gap: 12px; }
     .hero-title { font-size: 2rem; }
@@ -757,57 +708,37 @@
 
 <!-- CUSTOMER AUTH MODAL -->
 <div class="cauth-overlay" id="cauth-overlay">
-  <button class="cauth-close" onclick="closeCustomerAuth()"><i class="ti ti-x"></i></button>
   <div class="cauth-container" id="cauth-container">
+    <button class="cauth-close" onclick="closeCustomerAuth()"><i class="ti ti-x"></i></button>
 
-    <!-- SIGN UP FORM -->
-    <div class="cauth-form-panel cauth-signup-panel">
-      <form class="cauth-form" onsubmit="return handleCustomerSignUp(event)">
-        <h2 class="cauth-heading">建立帳號</h2>
-        <div class="cauth-socials">
-          <button type="button" class="cauth-google-btn" id="su-google-btn" onclick="handleGoogleSignIn('su')"><i class="ti ti-brand-google"></i> 使用 Google 繼續</button>
-        </div>
-        <p class="cauth-or">或使用您的 Email 註冊</p>
-        <input class="cauth-input" type="text" id="su-name" placeholder="姓名" required>
-        <input class="cauth-input" type="email" id="su-email" placeholder="Email" required>
-        <input class="cauth-input" type="password" id="su-password" placeholder="密碼（至少 6 碼）" required minlength="6">
-        <div class="cauth-error" id="su-error"></div>
-        <button type="submit" class="cauth-submit" id="su-submit">註冊</button>
-        <span class="cauth-mobile-toggle" onclick="setCauthMode('signin')">已經有帳號了？點此登入</span>
-      </form>
-    </div>
-
-    <!-- SIGN IN FORM -->
-    <div class="cauth-form-panel cauth-signin-panel">
+    <!-- SIGN IN -->
+    <div class="cauth-panel" id="cauth-signin-panel">
+      <h2 class="cauth-heading">登入</h2>
+      <button type="button" class="cauth-google-btn" id="si-google-btn" onclick="handleGoogleSignIn('si')"><i class="ti ti-brand-google"></i> 使用 Google 繼續</button>
+      <p class="cauth-or">或使用 Email 密碼登入</p>
       <form class="cauth-form" onsubmit="return handleCustomerSignIn(event)">
-        <h2 class="cauth-heading">登入</h2>
-        <div class="cauth-socials">
-          <button type="button" class="cauth-google-btn" id="si-google-btn" onclick="handleGoogleSignIn('si')"><i class="ti ti-brand-google"></i> 使用 Google 繼續</button>
-        </div>
-        <p class="cauth-or">或使用 Email 密碼登入</p>
         <input class="cauth-input" type="email" id="si-email" placeholder="Email" required>
         <input class="cauth-input" type="password" id="si-password" placeholder="密碼" required>
         <a class="cauth-forgot" onclick="handleForgotPassword()">忘記密碼？</a>
         <div class="cauth-error" id="si-error"></div>
         <button type="submit" class="cauth-submit" id="si-submit">登入</button>
-        <span class="cauth-mobile-toggle" onclick="setCauthMode('signup')">還沒有帳號？點此註冊</span>
       </form>
+      <p class="cauth-switch">還沒有帳號？<a onclick="setCauthMode('signup')">點此註冊</a></p>
     </div>
 
-    <!-- SLIDING OVERLAY -->
-    <div class="cauth-overlay-panel">
-      <div class="cauth-overlay-inner">
-        <div class="cauth-overlay-side cauth-overlay-left">
-          <h2 class="cauth-heading" style="color:#fff">歡迎回來！</h2>
-          <p class="cauth-overlay-text">已經有帳號了嗎？登入以繼續選購。</p>
-          <button type="button" class="cauth-ghost-btn" onclick="setCauthMode('signin')">登入</button>
-        </div>
-        <div class="cauth-overlay-side cauth-overlay-right">
-          <h2 class="cauth-heading" style="color:#fff">您好，朋友！</h2>
-          <p class="cauth-overlay-text">註冊帳號即可享有專屬優惠與收藏清單。</p>
-          <button type="button" class="cauth-ghost-btn" onclick="setCauthMode('signup')">註冊</button>
-        </div>
-      </div>
+    <!-- SIGN UP -->
+    <div class="cauth-panel" id="cauth-signup-panel" style="display:none;">
+      <h2 class="cauth-heading">建立帳號</h2>
+      <button type="button" class="cauth-google-btn" id="su-google-btn" onclick="handleGoogleSignIn('su')"><i class="ti ti-brand-google"></i> 使用 Google 繼續</button>
+      <p class="cauth-or">或使用您的 Email 註冊</p>
+      <form class="cauth-form" onsubmit="return handleCustomerSignUp(event)">
+        <input class="cauth-input" type="text" id="su-name" placeholder="姓名" required>
+        <input class="cauth-input" type="email" id="su-email" placeholder="Email" required>
+        <input class="cauth-input" type="password" id="su-password" placeholder="密碼（至少 6 碼）" required minlength="6">
+        <div class="cauth-error" id="su-error"></div>
+        <button type="submit" class="cauth-submit" id="su-submit">註冊</button>
+      </form>
+      <p class="cauth-switch">已經有帳號了？<a onclick="setCauthMode('signin')">點此登入</a></p>
     </div>
 
   </div>
@@ -1498,9 +1429,10 @@ function closeCustomerAuth() {
   document.getElementById('cauth-overlay').classList.remove('open');
 }
 function setCauthMode(mode) {
-  const box = document.getElementById('cauth-container');
-  if (mode === 'signup') box.classList.add('right-active');
-  else box.classList.remove('right-active');
+  const signin = document.getElementById('cauth-signin-panel');
+  const signup = document.getElementById('cauth-signup-panel');
+  if (mode === 'signup') { signin.style.display = 'none'; signup.style.display = 'flex'; }
+  else { signup.style.display = 'none'; signin.style.display = 'flex'; }
 }
 
 async function handleGoogleSignIn(panel) {

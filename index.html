@@ -478,13 +478,15 @@
 
   .cauth-form { width: 100%; max-width: 320px; display: flex; flex-direction: column; align-items: center; text-align: center; }
   .cauth-heading { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 1rem; color: var(--sf-dark); }
-  .cauth-socials { display: flex; gap: 10px; margin-bottom: 1rem; }
-  .cauth-social-btn {
-    width: 40px; height: 40px; border-radius: 50%; border: 1px solid #d2d2d7; background: #fff;
-    display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; color: var(--sf-dark);
-    transition: all 0.2s;
+  .cauth-socials { display: flex; gap: 10px; margin-bottom: 1rem; width: 100%; }
+  .cauth-google-btn {
+    width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid #d2d2d7; background: #fff;
+    display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
+    font-size: 14px; font-weight: 500; color: var(--sf-dark); font-family: inherit; transition: all 0.2s;
   }
-  .cauth-social-btn:hover { background: var(--sf-grey); }
+  .cauth-google-btn i { font-size: 17px; color: #4285F4; }
+  .cauth-google-btn:hover { background: var(--sf-grey); }
+  .cauth-google-btn:disabled { opacity: 0.6; cursor: default; }
   .cauth-or { font-size: 12px; color: var(--sf-text-grey); margin-bottom: 1.25rem; }
   .cauth-input {
     width: 100%; box-sizing: border-box; padding: 13px 16px; margin-bottom: 10px; border: none; background: var(--sf-grey);
@@ -763,9 +765,7 @@
       <form class="cauth-form" onsubmit="return handleCustomerSignUp(event)">
         <h2 class="cauth-heading">建立帳號</h2>
         <div class="cauth-socials">
-          <button type="button" class="cauth-social-btn"><i class="ti ti-brand-google"></i></button>
-          <button type="button" class="cauth-social-btn"><i class="ti ti-brand-facebook"></i></button>
-          <button type="button" class="cauth-social-btn"><i class="ti ti-brand-instagram"></i></button>
+          <button type="button" class="cauth-google-btn" id="su-google-btn" onclick="handleGoogleSignIn('su')"><i class="ti ti-brand-google"></i> 使用 Google 繼續</button>
         </div>
         <p class="cauth-or">或使用您的 Email 註冊</p>
         <input class="cauth-input" type="text" id="su-name" placeholder="姓名" required>
@@ -782,9 +782,7 @@
       <form class="cauth-form" onsubmit="return handleCustomerSignIn(event)">
         <h2 class="cauth-heading">登入</h2>
         <div class="cauth-socials">
-          <button type="button" class="cauth-social-btn"><i class="ti ti-brand-google"></i></button>
-          <button type="button" class="cauth-social-btn"><i class="ti ti-brand-facebook"></i></button>
-          <button type="button" class="cauth-social-btn"><i class="ti ti-brand-instagram"></i></button>
+          <button type="button" class="cauth-google-btn" id="si-google-btn" onclick="handleGoogleSignIn('si')"><i class="ti ti-brand-google"></i> 使用 Google 繼續</button>
         </div>
         <p class="cauth-or">或使用 Email 密碼登入</p>
         <input class="cauth-input" type="email" id="si-email" placeholder="Email" required>
@@ -836,7 +834,8 @@
   import {
     getAuth, setPersistence, browserLocalPersistence,
     createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail
+    onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail,
+    GoogleAuthProvider, signInWithPopup
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const firebaseConfig = {
@@ -853,13 +852,15 @@
   const db = getFirestore(fbApp);
   const auth = getAuth(fbApp);
   setPersistence(auth, browserLocalPersistence).catch((e) => console.error('無法設定登入狀態保存方式', e));
+  const googleProvider = new GoogleAuthProvider();
 
   // 把這些工具掛到 window，讓下面的一般 <script>（非 module）可以呼叫
   window.fb = {
     db,
     collection, doc, getDocs, setDoc, deleteDoc,
     auth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail
+    onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail,
+    googleProvider, signInWithPopup
   };
 
   // 客戶登入狀態改變時（登入/登出/剛載入頁面時）通知主程式
@@ -1502,6 +1503,30 @@ function setCauthMode(mode) {
   else box.classList.remove('right-active');
 }
 
+async function handleGoogleSignIn(panel) {
+  const errEl = document.getElementById(panel + '-error');
+  const btn = document.getElementById(panel + '-google-btn');
+  if (errEl) errEl.textContent = '';
+
+  if (!window.fb || !window.fb.auth) { if (errEl) errEl.textContent = '雲端服務尚未就緒，請稍候再試。'; return; }
+  if (btn.disabled) return; // 防止連點造成重複送出
+
+  btn.disabled = true;
+  try {
+    await window.fb.signInWithPopup(window.fb.auth, window.fb.googleProvider);
+    closeCustomerAuth();
+    showToast('已使用 Google 帳號登入 ✓');
+  } catch (err) {
+    if (err && err.code === 'auth/popup-closed-by-user') {
+      // 使用者自己關掉 Google 登入視窗，不用顯示錯誤訊息
+    } else if (errEl) {
+      errEl.textContent = customerAuthErrorMessage(err);
+    }
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 async function handleCustomerSignUp(e) {
   e.preventDefault();
   const name = document.getElementById('su-name').value.trim();
@@ -1590,7 +1615,10 @@ function customerAuthErrorMessage(err) {
     'auth/user-not-found': '帳號或密碼錯誤，請再試一次。',
     'auth/too-many-requests': '嘗試次數過多，請稍後再試。',
     'auth/unauthorized-domain': '此網域尚未被允許使用登入功能，請聯絡商店管理員。',
-    'auth/network-request-failed': '網路連線失敗，請檢查網路後再試一次。'
+    'auth/network-request-failed': '網路連線失敗，請檢查網路後再試一次。',
+    'auth/account-exists-with-different-credential': '這個 Email 已經用 Email／密碼註冊過了，請直接用密碼登入。',
+    'auth/popup-blocked': '瀏覽器擋住了登入彈出視窗，請允許彈出視窗後再試一次。',
+    'auth/cancelled-popup-request': '登入已取消，請再試一次。'
   };
   return map[code] || ('發生錯誤：' + (err && err.message ? err.message : '請稍後再試'));
 }

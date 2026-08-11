@@ -257,8 +257,10 @@
   .order-confirm-box i { font-size: 56px; color: var(--sf-green); margin-bottom: 1.25rem; display: block; }
   .order-id-box { display: inline-block; padding: 10px 22px; background: var(--sf-grey); border-radius: 12px; font-size: 18px; font-weight: 600; margin: 1rem 0 1.5rem; letter-spacing: 1px; }
   .pay-instructions { text-align: left; max-width: 460px; margin: 0 auto; padding: 1.5rem; background: var(--sf-grey); border-radius: 16px; font-size: 14px; line-height: 1.9; color: var(--sf-dark); }
-  .order-card { background: var(--sf-grey); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; }
-  .order-status-badge { display: inline-block; padding: 3px 12px; border-radius: 980px; font-size: 12px; font-weight: 600; }
+  .order-card { background: var(--sf-grey); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; font-size: 15px; }
+  .order-status-badge { display: inline-block; padding: 4px 14px; border-radius: 980px; font-size: 13px; font-weight: 600; }
+  #orders-admin-list .order-card { font-size: 16px; }
+  #orders-admin-list .order-card strong { font-size: 17px; }
   .status-待付款 { background: #fff3cd; color: #8a6d00; }
   .status-已付款 { background: #d4edda; color: #1e7e34; }
   .status-出貨中 { background: #cce5ff; color: #004085; }
@@ -542,7 +544,10 @@
   </div>
   <div class="nav-icons">
     <i class="ti ti-search"></i>
-    <i class="ti ti-package" title="查詢訂單" onclick="navigate('order-lookup')"></i>
+    <div class="cart-badge" onclick="navigate('order-lookup')" title="查詢訂單">
+      <i class="ti ti-package"></i>
+      <span class="badge-dot" id="order-badge-count" style="display:none;">1</span>
+    </div>
     <div class="cart-badge" onclick="navigate('cart')">
       <i class="ti ti-shopping-bag"></i>
       <span class="badge-dot" id="cart-count">0</span>
@@ -661,10 +666,22 @@
         <div class="checkout-section-title">收件資訊</div>
         <div class="form-row">
           <div class="form-group"><label class="form-label">姓名</label><input class="form-input" id="co-name" type="text" required></div>
-          <div class="form-group"><label class="form-label">聯絡電話</label><input class="form-input" id="co-phone" type="tel" required></div>
+          <div class="form-group">
+            <label class="form-label">聯絡電話</label>
+            <div style="display:flex;gap:8px;">
+              <input class="form-input" id="co-phone" type="tel" placeholder="09xxxxxxxx" oninput="onCheckoutPhoneChange()" required style="flex:1;">
+              <button type="button" class="btn-cancel" id="co-send-otp-btn" style="white-space:nowrap;" onclick="sendPhoneOTP()">發送驗證碼</button>
+            </div>
+            <div id="co-phone-status" style="font-size:12px;margin-top:6px;"></div>
+            <div id="co-otp-row" style="display:none;margin-top:8px;gap:8px;">
+              <input class="form-input" id="co-otp-code" type="text" placeholder="輸入 6 碼簡訊驗證碼" maxlength="6" style="flex:1;">
+              <button type="button" class="btn-save" style="flex:0 0 auto;padding:12px 20px;" onclick="confirmPhoneOTP()">確認</button>
+            </div>
+          </div>
         </div>
         <div class="form-group"><label class="form-label">Email（用於查詢訂單）</label><input class="form-input" id="co-email" type="email" required></div>
       </div>
+      <div id="recaptcha-container"></div>
 
       <div class="checkout-section">
         <div class="checkout-section-title">取貨門市</div>
@@ -844,6 +861,11 @@
     </div>
 
     <div class="form-group">
+      <label class="form-label">尺寸選項 <span style="font-weight:400;color:#6e6e73">（用逗號分隔，例：XS,S,M,L,XL）</span></label>
+      <input class="form-input" id="f-sizes" type="text" placeholder="XS,S,M,L,XL">
+    </div>
+
+    <div class="form-group">
       <label class="form-label">顏色選項</label>
       <div class="colors-list" id="colors-list"></div>
       <button class="btn-add-color" onclick="addColorEntry()"><i class="ti ti-plus"></i> 新增顏色</button>
@@ -918,7 +940,8 @@
     getAuth, setPersistence, browserLocalPersistence,
     createUserWithEmailAndPassword, signInWithEmailAndPassword,
     onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail,
-    GoogleAuthProvider, signInWithPopup
+    GoogleAuthProvider, signInWithPopup,
+    RecaptchaVerifier, PhoneAuthProvider, linkWithCredential, signInWithCredential
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const firebaseConfig = {
@@ -943,7 +966,8 @@
     collection, doc, getDocs, setDoc, deleteDoc,
     auth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
     onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail,
-    googleProvider, signInWithPopup
+    googleProvider, signInWithPopup,
+    RecaptchaVerifier, PhoneAuthProvider, linkWithCredential, signInWithCredential
   };
 
   // 客戶登入狀態改變時（登入/登出/剛載入頁面時）通知主程式
@@ -1065,8 +1089,14 @@ window.addEventListener('fb-ready', async () => {
 // CART
 // ============================================================
 let cart = [];
+let myOrderCount = 0;
 function updateBadge() {
   document.getElementById('cart-count').textContent = cart.reduce((s,i) => s + i.qty, 0);
+}
+function updateOrderBadge() {
+  const el = document.getElementById('order-badge-count');
+  if (myOrderCount > 0) { el.textContent = myOrderCount; el.style.display = 'flex'; }
+  else { el.style.display = 'none'; }
 }
 
 // ============================================================
@@ -1235,7 +1265,8 @@ async function openProductDetail(id) {
   const p = products.find(x => x.id === id);
   if (!p) return;
   currentProduct = p;
-  activeSize = 'S';
+  const sizes = (p.sizes && p.sizes.length) ? p.sizes : ['XS','S','M','L','XL'];
+  activeSize = sizes[0];
   activeColor = (p.colors && p.colors[0]) ? p.colors[0].name : '';
 
   document.getElementById('detail-cat').textContent = p.cat;
@@ -1246,9 +1277,8 @@ async function openProductDetail(id) {
   document.getElementById('selected-color-label').textContent = activeColor;
 
   // Sizes
-  const sizes = ['XS','S','M','L','XL'];
-  document.getElementById('size-selector-container').innerHTML = sizes.map(s =>
-    `<button class="size-btn ${s==='S'?'selected':''}" onclick="selectSize(this,'${s}')">${s}</button>`
+  document.getElementById('size-selector-container').innerHTML = sizes.map((s,i) =>
+    `<button class="size-btn ${i===0?'selected':''}" onclick="selectSize(this,'${s}')">${s}</button>`
   ).join('');
 
   // Colors
@@ -1341,7 +1371,95 @@ function deleteItem(i) { cart.splice(i, 1); updateBadge(); renderCart(); }
 // ============================================================
 // CHECKOUT
 // ============================================================
+// ============================================================
+// PHONE OTP 驗證
+// ============================================================
+let recaptchaVerifierInstance = null;
+let otpConfirmationId = null;
+let verifiedPhoneNumber = null; // 已通過驗證的號碼；若欄位跟這個一樣就不用重驗
+
+function normalizeTwPhone(raw) {
+  let p = raw.replace(/[\s-]/g, '');
+  if (p.startsWith('09') && p.length === 10) return '+886' + p.slice(1);
+  if (p.startsWith('+886')) return p;
+  return null;
+}
+
+function onCheckoutPhoneChange() {
+  const statusEl = document.getElementById('co-phone-status');
+  const phone = document.getElementById('co-phone').value.trim();
+  if (verifiedPhoneNumber && phone === verifiedPhoneNumber) {
+    statusEl.textContent = '✓ 已驗證';
+    statusEl.style.color = 'var(--sf-green)';
+    document.getElementById('co-send-otp-btn').style.display = 'none';
+  } else {
+    statusEl.textContent = '';
+    document.getElementById('co-send-otp-btn').style.display = 'inline-block';
+    document.getElementById('co-otp-row').style.display = 'none';
+  }
+}
+
+async function sendPhoneOTP() {
+  const rawPhone = document.getElementById('co-phone').value.trim();
+  const statusEl = document.getElementById('co-phone-status');
+  const normalized = normalizeTwPhone(rawPhone);
+  if (!normalized) { statusEl.style.color = 'var(--sf-red)'; statusEl.textContent = '請輸入正確的手機號碼（例：0912345678）'; return; }
+  if (!window.fb || !window.fb.auth) { statusEl.style.color = 'var(--sf-red)'; statusEl.textContent = '雲端服務尚未就緒，請稍候再試'; return; }
+
+  const btn = document.getElementById('co-send-otp-btn');
+  btn.disabled = true; btn.textContent = '發送中...';
+  statusEl.style.color = 'var(--sf-text-grey)'; statusEl.textContent = '';
+  try {
+    if (!recaptchaVerifierInstance) {
+      recaptchaVerifierInstance = new window.fb.RecaptchaVerifier(window.fb.auth, 'recaptcha-container', { size: 'invisible' });
+    }
+    const provider = new window.fb.PhoneAuthProvider(window.fb.auth);
+    otpConfirmationId = await provider.verifyPhoneNumber(normalized, recaptchaVerifierInstance);
+    document.getElementById('co-otp-row').style.display = 'flex';
+    statusEl.style.color = 'var(--sf-text-grey)';
+    statusEl.textContent = '驗證碼已發送，請查收簡訊';
+    btn.textContent = '重新發送';
+  } catch (err) {
+    console.error(err);
+    statusEl.style.color = 'var(--sf-red)';
+    statusEl.textContent = customerAuthErrorMessage(err);
+    btn.textContent = '發送驗證碼';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function confirmPhoneOTP() {
+  const code = document.getElementById('co-otp-code').value.trim();
+  const statusEl = document.getElementById('co-phone-status');
+  if (!code || !otpConfirmationId) { statusEl.style.color = 'var(--sf-red)'; statusEl.textContent = '請先發送驗證碼並輸入收到的 6 碼'; return; }
+
+  try {
+    const credential = window.fb.PhoneAuthProvider.credential(otpConfirmationId, code);
+    if (window.fb.auth.currentUser) {
+      try {
+        await window.fb.linkWithCredential(window.fb.auth.currentUser, credential);
+      } catch (linkErr) {
+        if (linkErr && linkErr.code !== 'auth/provider-already-linked' && linkErr.code !== 'auth/credential-already-in-use') throw linkErr;
+      }
+    } else {
+      await window.fb.signInWithCredential(window.fb.auth, credential);
+    }
+    verifiedPhoneNumber = document.getElementById('co-phone').value.trim();
+    document.getElementById('co-otp-row').style.display = 'none';
+    document.getElementById('co-send-otp-btn').style.display = 'none';
+    statusEl.style.color = 'var(--sf-green)';
+    statusEl.textContent = '✓ 已驗證';
+    showToast('手機號碼驗證成功 ✓');
+  } catch (err) {
+    console.error(err);
+    statusEl.style.color = 'var(--sf-red)';
+    statusEl.textContent = customerAuthErrorMessage(err);
+  }
+}
+
 function renderCheckoutSummary() {
+  onCheckoutPhoneChange();
   const el = document.getElementById('checkout-summary');
   if (!cart.length) { navigate('cart'); return; }
   const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
@@ -1368,6 +1486,8 @@ async function submitCheckout(e) {
   e.preventDefault();
   if (!cart.length) { showToast('購物車是空的'); return false; }
   if (!window.fb || !window.fb.db) { showToast('雲端服務尚未就緒，請稍候再試'); return false; }
+  const phoneNow = document.getElementById('co-phone').value.trim();
+  if (phoneNow !== verifiedPhoneNumber) { showToast('請先完成手機號碼簡訊驗證'); return false; }
 
   const btn = document.getElementById('checkout-submit-btn');
   const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
@@ -1396,6 +1516,7 @@ async function submitCheckout(e) {
   try {
     await window.fb.setDoc(window.fb.doc(window.fb.db, 'orders', order.orderId), order);
     cart = []; updateBadge();
+    myOrderCount++; updateOrderBadge();
     showOrderConfirmation(order);
     navigate('order-confirm');
   } catch (err) {
@@ -1483,6 +1604,7 @@ async function renderMyOrders() {
     });
     mine.sort((a,b) => b.createdAt - a.createdAt);
     listEl.innerHTML = mine.length ? mine.map(renderOrderCard).join('') : '<p style="color:var(--sf-text-grey);">目前沒有訂單紀錄。</p>';
+    myOrderCount = mine.length; updateOrderBadge();
   } catch (err) {
     console.error(err);
     listEl.innerHTML = '<p style="color:var(--sf-red);">載入失敗，請稍後再試。</p>';
@@ -1506,14 +1628,14 @@ async function renderOrdersAdmin() {
       <div class="order-card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
           <div>
-            <strong>${o.orderId}</strong>
-            <span style="color:var(--sf-text-grey);font-size:13px;margin-left:8px;">${o.customerName}｜${o.customerPhone}</span>
+            <strong style="font-size:17px;">${o.orderId}</strong>
+            <span style="color:var(--sf-text-grey);font-size:15px;margin-left:8px;">${o.customerName}｜${o.customerPhone}</span>
           </div>
-          <select class="form-input" style="width:auto;padding:6px 10px;font-size:13px;" onchange="updateOrderStatus('${o.orderId}', this.value)">
+          <select class="form-input" style="width:auto;padding:8px 12px;font-size:15px;" onchange="updateOrderStatus('${o.orderId}', this.value)">
             ${['待付款','已付款','待出貨','出貨中','已送達','取消'].map(s => `<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
           </select>
         </div>
-        <div style="font-size:13px;color:var(--sf-text-grey);line-height:1.8;">
+        <div style="font-size:15px;color:var(--sf-text-grey);line-height:1.9;">
           ${o.items.map(i => `${i.name}（${i.color}/${i.size}）× ${i.qty}`).join('<br>')}<br>
           取貨方式：${shippingMethodLabel(o)}｜付款方式：${paymentMethodLabel(o)}｜總金額：NT$ ${o.total.toLocaleString()}
         </div>
@@ -1605,6 +1727,7 @@ async function openModal(productId) {
   document.getElementById('f-price').value = '';
   document.getElementById('f-emoji').value = '';
   document.getElementById('f-desc').value = '';
+  document.getElementById('f-sizes').value = 'XS,S,M,L,XL';
   document.getElementById('colors-list').innerHTML = '';
   document.getElementById('media-previews').innerHTML = '';
 
@@ -1616,6 +1739,7 @@ async function openModal(productId) {
       document.getElementById('f-price').value = p.price;
       document.getElementById('f-emoji').value = p.emoji || '';
       document.getElementById('f-desc').value = p.desc || '';
+      document.getElementById('f-sizes').value = (p.sizes && p.sizes.length ? p.sizes : ['XS','S','M','L','XL']).join(',');
       (p.colors || []).forEach(c => addColorEntry(c.name, c.hex));
       // Load existing media (already have url + type from Firestore)
       for (const m of (p.media || [])) {
@@ -1703,6 +1827,7 @@ async function saveProduct() {
   const price = parseInt(document.getElementById('f-price').value);
   const emoji = document.getElementById('f-emoji').value || '🛍';
   const desc = document.getElementById('f-desc').value.trim();
+  const sizes = document.getElementById('f-sizes').value.split(',').map(s => s.trim()).filter(Boolean);
 
   if (!name || !price) { showToast('請填寫商品名稱與售價'); return; }
 
@@ -1733,12 +1858,12 @@ async function saveProduct() {
   if (editingId) {
     const idx = products.findIndex(p => p.id === editingId);
     if (idx !== -1) {
-      products[idx] = { ...products[idx], name, cat, price, emoji, desc, colors, media: mediaRefs };
+      products[idx] = { ...products[idx], name, cat, price, emoji, desc, sizes, colors, media: mediaRefs };
       savedProduct = products[idx];
     }
   } else {
     const newId = Date.now();
-    savedProduct = { id: newId, name, cat, price, emoji, desc, colors, media: mediaRefs };
+    savedProduct = { id: newId, name, cat, price, emoji, desc, sizes, colors, media: mediaRefs };
     products.push(savedProduct);
   }
 
@@ -1917,7 +2042,11 @@ function customerAuthErrorMessage(err) {
     'auth/network-request-failed': '網路連線失敗，請檢查網路後再試一次。',
     'auth/account-exists-with-different-credential': '這個 Email 已經用 Email／密碼註冊過了，請直接用密碼登入。',
     'auth/popup-blocked': '瀏覽器擋住了登入彈出視窗，請允許彈出視窗後再試一次。',
-    'auth/cancelled-popup-request': '登入已取消，請再試一次。'
+    'auth/cancelled-popup-request': '登入已取消，請再試一次。',
+    'auth/invalid-phone-number': '手機號碼格式不正確。',
+    'auth/invalid-verification-code': '驗證碼不正確，請重新輸入。',
+    'auth/code-expired': '驗證碼已過期，請重新發送。',
+    'auth/credential-already-in-use': '這個手機號碼已經被其他帳號使用過了。'
   };
   return map[code] || ('發生錯誤：' + (err && err.message ? err.message : '請稍後再試'));
 }

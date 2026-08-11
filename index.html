@@ -666,22 +666,10 @@
         <div class="checkout-section-title">收件資訊</div>
         <div class="form-row">
           <div class="form-group"><label class="form-label">姓名</label><input class="form-input" id="co-name" type="text" required></div>
-          <div class="form-group">
-            <label class="form-label">聯絡電話</label>
-            <div style="display:flex;gap:8px;">
-              <input class="form-input" id="co-phone" type="tel" placeholder="09xxxxxxxx" oninput="onCheckoutPhoneChange()" required style="flex:1;">
-              <button type="button" class="btn-cancel" id="co-send-otp-btn" style="white-space:nowrap;" onclick="sendPhoneOTP()">發送驗證碼</button>
-            </div>
-            <div id="co-phone-status" style="font-size:12px;margin-top:6px;"></div>
-            <div id="co-otp-row" style="display:none;margin-top:8px;gap:8px;">
-              <input class="form-input" id="co-otp-code" type="text" placeholder="輸入 6 碼簡訊驗證碼" maxlength="6" style="flex:1;">
-              <button type="button" class="btn-save" style="flex:0 0 auto;padding:12px 20px;" onclick="confirmPhoneOTP()">確認</button>
-            </div>
-          </div>
+          <div class="form-group"><label class="form-label">聯絡電話</label><input class="form-input" id="co-phone" type="tel" placeholder="09xxxxxxxx" required></div>
         </div>
         <div class="form-group"><label class="form-label">Email（用於查詢訂單）</label><input class="form-input" id="co-email" type="email" required></div>
       </div>
-      <div id="recaptcha-container"></div>
 
       <div class="checkout-section">
         <div class="checkout-section-title">取貨門市</div>
@@ -745,19 +733,30 @@
     <h2 class="cart-title">隱私權政策</h2>
     <div class="policy-content">
       <p class="policy-updated">最後更新日期：2026 年 8 月 10 日</p>
-      <h3>一、資料蒐集項目</h3>
-      <p>當您在 GC Shop（以下稱「本站」）註冊會員、下單購物或聯絡客服時，我們會蒐集您提供的姓名、Email、聯絡電話、收件地址（或超商取貨門市資訊）等個人資料。</p>
-      <h3>二、資料蒐集目的與使用方式</h3>
-      <p>上述資料僅用於處理您的訂單、出貨聯繫、客服回覆及帳號管理，不會用於行銷以外之目的，亦不會提供、交換、出租或出售給任何其他個人、團體或私人企業、公務機關。</p>
-      <h3>三、資料保護</h3>
-      <p>本站會員資料儲存於 Google Firebase 雲端服務，並透過帳號密碼機制與存取權限控管，防止未經授權之存取、使用或洩漏。惟網路傳輸無法達到百分之百安全，本站將盡力採取必要之安全防護措施。</p>
-      <h3>四、第三方服務</h3>
-      <p>本站使用 Google Firebase（帳號驗證與資料庫）、Cloudinary（圖片影片儲存）等第三方服務協助網站運作，這些服務商可能依其自身隱私權政策處理相關資料。</p>
-      <h3>五、您的權利</h3>
-      <p>您可以隨時聯繫本站客服，要求查詢、閱覽、更正或刪除您的個人資料。</p>
-      <h3>六、政策修訂</h3>
-      <p>本政策將因應需求隨時進行修訂，修訂後將公布於本頁面。</p>
-      <p class="policy-disclaimer">＊本頁內容為一般性範本，非正式法律文件，建議正式營運前諮詢專業法律意見以符合台灣個人資料保護法等相關法規要求。</p>
+      <h3>一、個人資料蒐集之法定告知（個資法第 8 條）</h3>
+      <p>GC Shop（以下簡稱「本站」）由個人創作者獨立營運。為提供商品銷售、配送及客戶服務，依據個人資料保護法第 8 條規定，向您告知下列事項：</p>
+      <p>（一）蒐集單位：GC Shop。</p>
+      <p>（二）蒐集目的：辦理訂單處理、商品寄送、客戶服務、付款確認及帳號管理。</p>
+      <p>（三）個人資料類別：</p>
+      <p>識別類：姓名、電子郵件地址、聯絡電話、收件地址、超商取貨門市資訊。</p>
+      <p>交易類：交易紀錄、付款方式及退款帳戶資訊（僅於辦理退款時使用）。</p>
+      <p>系統紀錄：IP 位址、Cookie 及網站瀏覽紀錄。</p>
+      <p>（四）利用期間、地區、對象及方式：</p>
+      <p>期間：完成交易目的與履行法令規定保存年限所需之期間。</p>
+      <p>地區：台灣及本站使用之第三方雲端伺服器所在地（如 Google Firebase、Cloudinary）。</p>
+      <p>對象：本站、協助本站運作之系統服務商，以及配合配送商品之物流業者（如超商物流、宅配公司）。</p>
+      <p>方式：以自動化或非自動化之電子及紙本方式進行處理與利用。</p>
+      <p>（五）當事人權利（個資法第 3 條）：<br>您得隨時透過本站客服聯絡方式（Email 或社交平台私訊），向我們請求查詢、閱覽、製給複製本、補充、更正、停止蒐集處理利用，或刪除您的個人資料。</p>
+      <p>（六）不提供資料之權益影響：<br>您得自由選擇是否提供個人資料，惟若拒絕提供完成訂單所必需之資料（如姓名、電話、取貨門市），本站將無法為您處理訂單及寄送商品。</p>
+
+      <h3>二、第三方服務與資料安全</h3>
+      <p>本站使用 Google Firebase（帳號與資料庫服務）及 Cloudinary（媒體儲存服務）等雲端服務協助網站運作。本站採用符合業界標準之安全機制，維護您的個人資料安全，防止未獲授權之存取、洩漏或竄改。</p>
+
+      <h3>三、Cookie 之使用</h3>
+      <p>本站會在您的裝置中放置並存取 Cookie，以提升瀏覽體驗。您可於瀏覽器設定中關閉 Cookie 寫入，惟可能影響網站部分功能之正常運作。</p>
+
+      <h3>四、政策修訂</h3>
+      <p>本隱私權政策將因應法令變更或營運需求隨時修訂，修訂後之內容將公布於本頁面。</p>
     </div>
   </div>
 </div>
@@ -766,24 +765,31 @@
 <div class="page" id="page-terms">
   <div class="cart-wrap">
     <div class="back-link" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 返回首頁</div>
-    <h2 class="cart-title">服務條款</h2>
+    <h2 class="cart-title">服務條款與購物須知</h2>
     <div class="policy-content">
       <p class="policy-updated">最後更新日期：2026 年 8 月 10 日</p>
-      <h3>一、條款接受</h3>
-      <p>當您使用 GC Shop（以下稱「本站」）進行瀏覽、註冊或下單，即表示您已閱讀、瞭解並同意接受本服務條款之所有內容。</p>
-      <h3>二、會員帳號</h3>
-      <p>您應提供正確、完整之註冊資料，並妥善保管帳號密碼。若因帳號密碼保管不當致生損害，本站不負相關賠償責任。</p>
-      <h3>三、訂單成立與付款</h3>
-      <p>訂單於您送出並經本站確認後成立。目前僅提供超商取貨付款服務，商品送達您指定之取貨門市後，請於門市取貨時完成付款。</p>
-      <h3>四、出貨與取貨</h3>
-      <p>本站將依訂單所填寫之超商門市資訊安排出貨，實際到貨時間依物流業者作業時間為準，可能因天候、地區或不可抗力因素而有所延遲。</p>
-      <h3>五、退換貨</h3>
-      <p>商品如有瑕疵或配送錯誤，請於收到商品後 7 日內聯繫客服協助處理。退換貨相關細節依本站另行公告之退換貨政策為準。</p>
-      <h3>六、責任限制</h3>
-      <p>本站商品圖片可能因拍攝、螢幕顯示等因素與實際商品略有色差，恕不另行通知。</p>
-      <h3>七、條款修訂</h3>
-      <p>本站保留隨時修訂本服務條款之權利，修訂後將公布於本頁面，請您隨時留意最新版本。</p>
-      <p class="policy-disclaimer">＊本頁內容為一般性範本，非正式法律文件，建議正式營運前諮詢專業法律意見以符合台灣消費者保護法等相關法規要求。</p>
+      <h3>一、條款接受與賣家資訊</h3>
+      <p>當您使用 GC Shop（以下簡稱「本站」）進行瀏覽、註冊或下單購物，即表示您已閱讀、瞭解並同意接受本服務條款之所有內容。<br>本站係由個人創作者獨立營運，如有任何購物或商品問題，請透過以下方式聯絡我們：</p>
+      <p>客服電子郵件：etcyai@protonmail.com</p>
+      <p>官方 IG : etcyai</p>
+
+      <h3>二、帳號安全與責任</h3>
+      <p>您應提供正確之訂購資料並妥善保管個人帳號密碼。若發現帳號有遭冒用之情形，請立即通知本站客服，本站將協助暫停該帳號之相關交易活動。</p>
+
+      <h3>三、訂單成立與付款方式</h3>
+      <p>（一）交易頁面上呈現之商品名稱、價格、規格及說明均為契約之一部分。</p>
+      <p>（二）您於本站送出訂單後，買賣契約即告成立。本站目前提供超商取貨付款服務，商品送達您指定之門市後，請於門市規定之取貨期限內完成付款及取件。</p>
+
+      <h3>四、出貨與物流</h3>
+      <p>本站將於收到訂單後依排程安排出貨，實際到貨時間依物流業者（超商物流）作業時間為準。如遇商品缺貨、製作延遲或不可抗力因素，本站將主動透過 Email 或社交平台私訊聯繫您。</p>
+
+      <h3>五、7 天鑑賞期、客製化給付與退換貨規定</h3>
+      <p>（一）一般現貨商品：依《消費者保護法》第 19 條規定，消費者享有商品到達後 7 天鑑賞期（猶豫期）之權利。收到商品 7 天內，若商品保持全新未拆封使用狀態，您得無條件聯繫本站客服辦理退貨。</p>
+      <p>（二）客製化創作商品：若商品屬於依買家要求進行量身訂製、客製化印製或手作專屬款式，並於商品頁面上事前明確標示者，依《通訊交易解除權合理例外情事適用準則》第 2 條規定，排除 7 天無條件退貨之適用。</p>
+      <p>（三）瑕疵或配送錯誤：若您收到的商品有嚴重瑕疵、毀損或寄錯品項，請於收到商品 7 天內拍照並聯繫本站客服，我們將儘速為您辦理免費換貨，相關來回運費由本站全額負擔。</p>
+
+      <h3>六、消費爭議處理</h3>
+      <p>若您對本站之商品或服務有任何意見，請優先透過客服信箱或社交平台與我們聯繫，本站將本於誠信原則儘速協助處理解決。</p>
     </div>
   </div>
 </div>
@@ -940,8 +946,7 @@
     getAuth, setPersistence, browserLocalPersistence,
     createUserWithEmailAndPassword, signInWithEmailAndPassword,
     onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail,
-    GoogleAuthProvider, signInWithPopup,
-    RecaptchaVerifier, PhoneAuthProvider, linkWithCredential, signInWithCredential
+    GoogleAuthProvider, signInWithPopup
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const firebaseConfig = {
@@ -966,8 +971,7 @@
     collection, doc, getDocs, setDoc, deleteDoc,
     auth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
     onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail,
-    googleProvider, signInWithPopup,
-    RecaptchaVerifier, PhoneAuthProvider, linkWithCredential, signInWithCredential
+    googleProvider, signInWithPopup
   };
 
   // 客戶登入狀態改變時（登入/登出/剛載入頁面時）通知主程式
@@ -1371,95 +1375,7 @@ function deleteItem(i) { cart.splice(i, 1); updateBadge(); renderCart(); }
 // ============================================================
 // CHECKOUT
 // ============================================================
-// ============================================================
-// PHONE OTP 驗證
-// ============================================================
-let recaptchaVerifierInstance = null;
-let otpConfirmationId = null;
-let verifiedPhoneNumber = null; // 已通過驗證的號碼；若欄位跟這個一樣就不用重驗
-
-function normalizeTwPhone(raw) {
-  let p = raw.replace(/[\s-]/g, '');
-  if (p.startsWith('09') && p.length === 10) return '+886' + p.slice(1);
-  if (p.startsWith('+886')) return p;
-  return null;
-}
-
-function onCheckoutPhoneChange() {
-  const statusEl = document.getElementById('co-phone-status');
-  const phone = document.getElementById('co-phone').value.trim();
-  if (verifiedPhoneNumber && phone === verifiedPhoneNumber) {
-    statusEl.textContent = '✓ 已驗證';
-    statusEl.style.color = 'var(--sf-green)';
-    document.getElementById('co-send-otp-btn').style.display = 'none';
-  } else {
-    statusEl.textContent = '';
-    document.getElementById('co-send-otp-btn').style.display = 'inline-block';
-    document.getElementById('co-otp-row').style.display = 'none';
-  }
-}
-
-async function sendPhoneOTP() {
-  const rawPhone = document.getElementById('co-phone').value.trim();
-  const statusEl = document.getElementById('co-phone-status');
-  const normalized = normalizeTwPhone(rawPhone);
-  if (!normalized) { statusEl.style.color = 'var(--sf-red)'; statusEl.textContent = '請輸入正確的手機號碼（例：0912345678）'; return; }
-  if (!window.fb || !window.fb.auth) { statusEl.style.color = 'var(--sf-red)'; statusEl.textContent = '雲端服務尚未就緒，請稍候再試'; return; }
-
-  const btn = document.getElementById('co-send-otp-btn');
-  btn.disabled = true; btn.textContent = '發送中...';
-  statusEl.style.color = 'var(--sf-text-grey)'; statusEl.textContent = '';
-  try {
-    if (!recaptchaVerifierInstance) {
-      recaptchaVerifierInstance = new window.fb.RecaptchaVerifier(window.fb.auth, 'recaptcha-container', { size: 'invisible' });
-    }
-    const provider = new window.fb.PhoneAuthProvider(window.fb.auth);
-    otpConfirmationId = await provider.verifyPhoneNumber(normalized, recaptchaVerifierInstance);
-    document.getElementById('co-otp-row').style.display = 'flex';
-    statusEl.style.color = 'var(--sf-text-grey)';
-    statusEl.textContent = '驗證碼已發送，請查收簡訊';
-    btn.textContent = '重新發送';
-  } catch (err) {
-    console.error(err);
-    statusEl.style.color = 'var(--sf-red)';
-    statusEl.textContent = customerAuthErrorMessage(err);
-    btn.textContent = '發送驗證碼';
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-async function confirmPhoneOTP() {
-  const code = document.getElementById('co-otp-code').value.trim();
-  const statusEl = document.getElementById('co-phone-status');
-  if (!code || !otpConfirmationId) { statusEl.style.color = 'var(--sf-red)'; statusEl.textContent = '請先發送驗證碼並輸入收到的 6 碼'; return; }
-
-  try {
-    const credential = window.fb.PhoneAuthProvider.credential(otpConfirmationId, code);
-    if (window.fb.auth.currentUser) {
-      try {
-        await window.fb.linkWithCredential(window.fb.auth.currentUser, credential);
-      } catch (linkErr) {
-        if (linkErr && linkErr.code !== 'auth/provider-already-linked' && linkErr.code !== 'auth/credential-already-in-use') throw linkErr;
-      }
-    } else {
-      await window.fb.signInWithCredential(window.fb.auth, credential);
-    }
-    verifiedPhoneNumber = document.getElementById('co-phone').value.trim();
-    document.getElementById('co-otp-row').style.display = 'none';
-    document.getElementById('co-send-otp-btn').style.display = 'none';
-    statusEl.style.color = 'var(--sf-green)';
-    statusEl.textContent = '✓ 已驗證';
-    showToast('手機號碼驗證成功 ✓');
-  } catch (err) {
-    console.error(err);
-    statusEl.style.color = 'var(--sf-red)';
-    statusEl.textContent = customerAuthErrorMessage(err);
-  }
-}
-
 function renderCheckoutSummary() {
-  onCheckoutPhoneChange();
   const el = document.getElementById('checkout-summary');
   if (!cart.length) { navigate('cart'); return; }
   const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
@@ -1486,8 +1402,6 @@ async function submitCheckout(e) {
   e.preventDefault();
   if (!cart.length) { showToast('購物車是空的'); return false; }
   if (!window.fb || !window.fb.db) { showToast('雲端服務尚未就緒，請稍候再試'); return false; }
-  const phoneNow = document.getElementById('co-phone').value.trim();
-  if (phoneNow !== verifiedPhoneNumber) { showToast('請先完成手機號碼簡訊驗證'); return false; }
 
   const btn = document.getElementById('checkout-submit-btn');
   const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
@@ -2086,6 +2000,11 @@ const _origNavigate = navigate;
 navigate = function(page) {
   if (page === 'admin' && !isAdminLoggedIn()) {
     showToast('請先用管理員帳號登入');
+    openCustomerAuth('signin');
+    return;
+  }
+  if (page === 'checkout' && !currentCustomerUser) {
+    showToast('請先登入才能結帳');
     openCustomerAuth('signin');
     return;
   }

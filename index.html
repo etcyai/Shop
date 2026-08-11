@@ -407,10 +407,12 @@
 
   /* FOOTER */
   .site-footer {
-    display: flex; justify-content: center; align-items: center;
+    display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1.25rem;
     padding: 4rem 2.5rem; background: #fff;
     border-top: 0.5px solid var(--sf-border); margin-top: 5rem;
   }
+  .footer-links-row { display: flex; align-items: center; }
+  .footer-copyright { font-size: 12px; color: #a1a1a6; }
   .footer-ig-link {
     display: inline-flex; align-items: center; gap: 8px; color: var(--sf-text-grey);
     text-decoration: none; font-size: 14px; transition: color 0.2s;
@@ -686,6 +688,11 @@
       </div>
 
       <div class="checkout-section">
+        <div class="checkout-section-title">訂單備註 <span style="font-weight:400;color:var(--sf-text-grey);">（選填）</span></div>
+        <textarea class="form-input" id="co-note" placeholder="有想跟賣家說的話可以寫在這裡，例如指定顏色尺寸備選、包裝需求等" rows="3"></textarea>
+      </div>
+
+      <div class="checkout-section">
         <div class="checkout-section-title">訂單摘要</div>
         <div id="checkout-summary"></div>
       </div>
@@ -770,7 +777,7 @@
       <p class="policy-updated">最後更新日期：2026 年 8 月 10 日</p>
       <h3>一、條款接受與賣家資訊</h3>
       <p>當您使用 GC Shop（以下簡稱「本站」）進行瀏覽、註冊或下單購物，即表示您已閱讀、瞭解並同意接受本服務條款之所有內容。<br>本站係由個人創作者獨立營運，如有任何購物或商品問題，請透過以下方式聯絡我們：</p>
-      <p>客服電子郵件：etcyai@protonmail.com</p>
+     <p>客服電子郵件：etcyai@protonmail.com</p>
       <p>官方 IG : etcyai</p>
 
       <h3>二、帳號安全與責任</h3>
@@ -926,11 +933,14 @@
 <div class="toast" id="toast"></div>
 
 <footer class="site-footer">
-  <a href="https://www.instagram.com/etcyai/" target="_blank" class="footer-ig-link">
-    <i class="ti ti-brand-instagram"></i> Instagram
-  </a>
-  <a onclick="navigate('privacy')" class="footer-ig-link" style="margin-left:2rem;cursor:pointer;">隱私權政策</a>
-  <a onclick="navigate('terms')" class="footer-ig-link" style="margin-left:1.5rem;cursor:pointer;">服務條款</a>
+  <div class="footer-links-row">
+    <a href="https://www.instagram.com/etcyai/" target="_blank" class="footer-ig-link">
+      <i class="ti ti-brand-instagram"></i> Instagram
+    </a>
+    <a onclick="navigate('privacy')" class="footer-ig-link" style="margin-left:2rem;cursor:pointer;">隱私權政策</a>
+    <a onclick="navigate('terms')" class="footer-ig-link" style="margin-left:1.5rem;cursor:pointer;">服務條款</a>
+  </div>
+  <div class="footer-copyright">© 2026 GC Shop 未經允許禁止複製</div>
 </footer>
 
 <script type="module">
@@ -1415,6 +1425,8 @@ async function submitCheckout(e) {
     customerPhone: document.getElementById('co-phone').value.trim(),
     customerEmail: document.getElementById('co-email').value.trim().toLowerCase(),
     customerUid: currentCustomerUser ? currentCustomerUser.uid : null,
+    customerNote: document.getElementById('co-note').value.trim(),
+    adminNote: '',
     shippingMethod: 'store',
     storeBrand: document.getElementById('co-store-brand').value,
     storeName: document.getElementById('co-store-name').value.trim(),
@@ -1490,6 +1502,7 @@ async function lookupOrder() {
 
 function renderOrderCard(o) {
   const itemsHtml = o.items.map(i => `${i.name}（${i.color}/${i.size}）× ${i.qty}`).join('<br>');
+  const noteHtml = o.customerNote ? `<br>備註：${o.customerNote}` : '';
   return `<div class="order-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <strong>${o.orderId}</strong>
@@ -1498,7 +1511,7 @@ function renderOrderCard(o) {
     <div style="font-size:13px;color:var(--sf-text-grey);line-height:1.8;">
       ${itemsHtml}<br>
       取貨方式：${shippingMethodLabel(o)}｜付款方式：${paymentMethodLabel(o)}<br>
-      總金額：NT$ ${o.total.toLocaleString()}
+      總金額：NT$ ${o.total.toLocaleString()}${noteHtml}
     </div>
   </div>`;
 }
@@ -1552,6 +1565,14 @@ async function renderOrdersAdmin() {
         <div style="font-size:15px;color:var(--sf-text-grey);line-height:1.9;">
           ${o.items.map(i => `${i.name}（${i.color}/${i.size}）× ${i.qty}`).join('<br>')}<br>
           取貨方式：${shippingMethodLabel(o)}｜付款方式：${paymentMethodLabel(o)}｜總金額：NT$ ${o.total.toLocaleString()}
+          ${o.customerNote ? `<br><strong style="color:var(--sf-dark);">客人備註：</strong>${o.customerNote}` : ''}
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--sf-border);">
+          <label class="form-label" style="font-size:13px;">商家備註（僅後台看得到）</label>
+          <div style="display:flex;gap:8px;align-items:flex-start;">
+            <textarea class="form-input" id="admin-note-${o.orderId}" rows="2" style="font-size:14px;flex:1;">${o.adminNote || ''}</textarea>
+            <button class="btn-cancel" style="white-space:nowrap;" onclick="updateOrderNote('${o.orderId}')">儲存備註</button>
+          </div>
         </div>
       </div>
     `).join('');
@@ -1572,6 +1593,21 @@ async function updateOrderStatus(orderId, status) {
   } catch (err) {
     console.error(err);
     showToast('更新失敗，請檢查網路連線');
+  }
+}
+
+async function updateOrderNote(orderId) {
+  const note = document.getElementById('admin-note-' + orderId).value.trim();
+  try {
+    const ref = window.fb.doc(window.fb.db, 'orders', orderId);
+    const snap = await window.fb.getDocs(window.fb.collection(window.fb.db, 'orders'));
+    let existing = null;
+    snap.forEach(d => { if (d.id === orderId) existing = d.data(); });
+    await window.fb.setDoc(ref, { ...(existing||{}), adminNote: note });
+    showToast('備註已儲存');
+  } catch (err) {
+    console.error(err);
+    showToast('儲存失敗，請檢查網路連線');
   }
 }
 

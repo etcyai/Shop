@@ -643,7 +643,7 @@
         <div class="field-label">外觀顏色：<span id="selected-color-label">預設色</span></div>
         <div class="color-swatches" id="color-swatches-container"></div>
         <button class="add-btn" id="add-to-cart-btn" onclick="executeAddToCart()">加入購物車</button>
-        <button class="wishlist-btn">加入收藏列表</button>
+        <button class="wishlist-btn" id="buy-now-btn" onclick="buyNow()">直接結帳</button>
         <div class="detail-desc"><p id="detail-desc"></p></div>
       </div>
     </div>
@@ -940,7 +940,7 @@
     <a onclick="navigate('privacy')" class="footer-ig-link" style="margin-left:2rem;cursor:pointer;">隱私權政策</a>
     <a onclick="navigate('terms')" class="footer-ig-link" style="margin-left:1.5rem;cursor:pointer;">服務條款</a>
   </div>
-  <div class="footer-copyright">© 2026 GC Shop </div>
+  <div class="footer-copyright">© 2026 GC Shop 未經允許禁止複製</div>
 </footer>
 
 <script type="module">
@@ -1329,6 +1329,21 @@ function executeAddToCart() {
   const btn = document.getElementById('add-to-cart-btn');
   btn.textContent = '已成功加入購物袋 ✓'; btn.style.background = '#34c759';
   setTimeout(() => { btn.textContent = '加入購物車'; btn.style.background = 'var(--sf-blue)'; }, 1800);
+}
+
+function buyNow() {
+  if (!currentProduct) return;
+  const existing = cart.find(i => i.id === currentProduct.id && i.size === activeSize && i.color === activeColor);
+  if (existing) existing.qty++;
+  else cart.push({
+    id: currentProduct.id, name: currentProduct.name, price: currentProduct.price,
+    emoji: currentProduct.emoji, size: activeSize, color: activeColor,
+    mediaUrl: currentProduct.media && currentProduct.media[0] ? currentProduct.media[0].url : null,
+    mediaType: currentProduct.media && currentProduct.media[0] ? currentProduct.media[0].type : null,
+    qty: 1
+  });
+  updateBadge();
+  navigate('checkout');
 }
 
 // ============================================================

@@ -1158,7 +1158,8 @@ function navigate(page) {
     'order-confirm':'訂單成立',
     'order-lookup':'查詢訂單',
     privacy:'隱私權政策', terms:'服務條款', admin:'後台管理'};
-  document.getElementById('subnav-page-title').textContent = title[page] || 'GC';
+  const subnavTitleEl = document.getElementById('subnav-page-title');
+  if (subnavTitleEl) subnavTitleEl.textContent = title[page] || 'GC';
   if (page === 'list') renderProducts('全部');
   if (page === 'cart') renderCart();
   if (page === 'checkout') renderCheckoutSummary();

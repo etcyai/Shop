@@ -2085,7 +2085,30 @@ navigate = function(page) {
     return;
   }
   _origNavigate(page);
+  // 記錄到瀏覽器歷史，讓上一頁／下一頁按鈕可以正常運作
+  if (!_isPopStateNav) {
+    const state = { page: page };
+    if (page === 'detail' && currentProduct) state.productId = currentProduct.id;
+    history.pushState(state, '', '#' + page + (state.productId ? ('-' + state.productId) : ''));
+  }
 };
+
+// ============================================================
+// 瀏覽器 上一頁／下一頁（History API）
+// ============================================================
+let _isPopStateNav = false;
+window.addEventListener('popstate', (e) => {
+  const state = e.state || { page: 'home' };
+  _isPopStateNav = true;
+  if (state.page === 'detail' && state.productId != null) {
+    openProductDetail(state.productId);
+  } else {
+    navigate(state.page || 'home');
+  }
+  _isPopStateNav = false;
+});
+// 設定第一次載入頁面時的歷史紀錄，之後按「上一頁」才回得到首頁
+history.replaceState({ page: 'home' }, '', location.pathname + location.search);
 
 // INIT
 updateBadge();

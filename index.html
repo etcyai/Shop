@@ -1486,33 +1486,31 @@ function generateOrderId() {
 }
 
 // ============================================================
-// TELEGRAM 訂單通知 — 客人下訂單後，自動發訊息到店主的 Telegram
+// TELEGRAM 訂單通知 — 客人下訂單後，透過 Cloudflare Worker 中介站
+// 發訊息到店主的 Telegram（Worker 網址是公開的沒關係，
+// 真正的 token 是加密存在 Worker 後台，網站原始碼完全看不到）
 // ============================================================
-const TELEGRAM_BOT_TOKEN = '8671316110:AAFk6MtfOBoNhVJ4yJJ_ep_RyP5azUXux6A';
-const TELEGRAM_CHAT_ID = '8271042079';
+const NOTIFY_WORKER_URL = 'https://gc-shop-notify.pinchenli1156784.workers.dev';
 
 async function sendTelegramOrderNotification(order) {
   try {
-    const itemsText = order.items.map(i => `・${i.name}（${i.color}/${i.size}）× ${i.qty}`).join('\n');
-    const message =
-      `🛍 新訂單通知\n\n` +
-      `訂單編號：${order.orderId}\n` +
-      `客戶姓名：${order.customerName}\n` +
-      `聯絡電話：${order.customerPhone}\n\n` +
-      `${itemsText}\n\n` +
-      `取貨方式：${shippingMethodLabel(order)}\n` +
-      `付款方式：${paymentMethodLabel(order)}\n` +
-      `總金額：NT$ ${order.total.toLocaleString()}` +
-      (order.customerNote ? `\n備註：${order.customerNote}` : '');
-
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    await fetch(NOTIFY_WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message })
+      body: JSON.stringify({
+        orderId: order.orderId,
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
+        items: order.items,
+        shippingLabel: shippingMethodLabel(order),
+        paymentLabel: paymentMethodLabel(order),
+        total: order.total,
+        customerNote: order.customerNote
+      })
     });
   } catch (err) {
     // 通知失敗不影響訂單本身，只記錄在 console
-    console.error('Telegram 通知發送失敗', err);
+    console.error('訂單通知發送失敗', err);
   }
 }
 

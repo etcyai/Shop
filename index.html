@@ -60,6 +60,34 @@
   .nav-icons { display: flex; gap: 1.5rem; align-items: center; }
   .nav-icons i { font-size: 16px; color: var(--sf-text-grey); cursor: pointer; transition: color 0.2s; }
   .nav-icons i:hover { color: var(--sf-dark); }
+  .menu-toggle-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; }
+  .menu-toggle-btn i { font-size: 20px; color: var(--sf-text-grey); transition: color 0.2s; }
+  .menu-toggle-btn:hover i { color: var(--sf-dark); }
+  .side-menu-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 2500; opacity: 0; pointer-events: none; transition: opacity 0.35s ease;
+  }
+  .side-menu-overlay.open { opacity: 1; pointer-events: auto; }
+  .side-menu {
+    position: fixed; top: 0; right: 0; height: 100%; width: 320px; max-width: 85vw;
+    background: #fff; z-index: 2600; padding: 2rem 1.75rem;
+    box-shadow: -8px 0 40px rgba(0,0,0,0.15);
+    transform: translateX(100%); transition: transform 0.35s cubic-bezier(.25,1,.5,1);
+  }
+  .side-menu.open { transform: translateX(0); }
+  .side-menu-close {
+    position: absolute; top: 1.5rem; right: 1.5rem; background: var(--sf-grey); border: none;
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .side-menu-close:hover { background: #e5e5ea; }
+  .side-menu-links { margin-top: 3.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .side-menu-item {
+    display: flex; align-items: center; gap: 14px; font-size: 15px; color: var(--sf-dark);
+    cursor: pointer; padding: 0.85rem 0; border-bottom: 0.5px solid var(--sf-border);
+  }
+  .side-menu-item i { font-size: 18px; color: var(--sf-text-grey); }
+  .side-menu-item .badge-dot { position: static; margin-left: auto; }
   .cart-badge { position: relative; display: inline-block; cursor: pointer; }
   .badge-dot {
     position: absolute; top: -6px; right: -8px; width: 14px; height: 14px;
@@ -576,20 +604,34 @@
   </div>
   <div class="nav-home-logo" onclick="navigate('home')">GC</div>
   <div class="nav-icons">
-    <i class="ti ti-search"></i>
-    <div class="cart-badge" onclick="navigate('order-lookup')" title="查詢訂單">
-      <i class="ti ti-package"></i>
-      <span class="badge-dot" id="order-badge-count" style="display:none;">1</span>
-    </div>
-    <div class="cart-badge" onclick="navigate('cart')">
-      <i class="ti ti-shopping-bag"></i>
-      <span class="badge-dot" id="cart-count">0</span>
-    </div>
+    <button class="menu-toggle-btn" onclick="openSideMenu()" aria-label="選單"><i class="ti ti-menu-2"></i></button>
     <span id="customer-account-slot" style="display:none;font-size:13px;color:var(--sf-text-grey);cursor:pointer;" onclick="handleLogout()"></span>
     <button class="subnav-btn" id="customer-auth-btn" onclick="openCustomerAuth()">SÏGN UP</button>
   </div>
 </nav>
 
+<!-- SIDE MENU（訂單查詢／購物車 收整成側邊選單） -->
+<div class="side-menu-overlay" id="side-menu-overlay" onclick="closeSideMenuOnOverlay(event)">
+  <div class="side-menu" id="side-menu">
+    <button class="side-menu-close" onclick="closeSideMenu()"><i class="ti ti-x"></i></button>
+    <div class="side-menu-links">
+      <div class="side-menu-item" onclick="closeSideMenu();navigate('order-lookup')">
+        <i class="ti ti-package"></i>
+        <span>查詢訂單</span>
+        <span class="badge-dot" id="order-badge-count" style="display:none;">1</span>
+      </div>
+      <div class="side-menu-item" onclick="closeSideMenu();navigate('cart')">
+        <i class="ti ti-shopping-bag"></i>
+        <span>購物袋</span>
+        <span class="badge-dot" id="cart-count">0</span>
+      </div>
+      <div class="side-menu-item">
+        <i class="ti ti-search"></i>
+        <span>搜尋</span>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- HOME -->
 <div class="page active" id="page-home">
   <div class="hero" id="interactive-hero">
@@ -1897,6 +1939,21 @@ function showToast(msg, duration) {
 // ============================================================
 // CUSTOMER AUTH — SIGN IN / SIGN UP
 // ============================================================
+// ============================================================
+// SIDE MENU（訂單查詢／購物車 側邊選單）
+// ============================================================
+function openSideMenu() {
+  document.getElementById('side-menu-overlay').classList.add('open');
+  document.getElementById('side-menu').classList.add('open');
+}
+function closeSideMenu() {
+  document.getElementById('side-menu-overlay').classList.remove('open');
+  document.getElementById('side-menu').classList.remove('open');
+}
+function closeSideMenuOnOverlay(e) {
+  if (e.target === document.getElementById('side-menu-overlay')) closeSideMenu();
+}
+
 function openCustomerAuth(mode) {
   document.getElementById('cauth-overlay').classList.add('open');
   setCauthMode(mode || 'signin');

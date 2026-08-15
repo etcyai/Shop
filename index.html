@@ -170,16 +170,19 @@
     cursor: pointer; white-space: nowrap; transition: color 0.2s;
   }
   .filter-chip.active, .filter-chip:hover { background: none; color: var(--sf-dark); }
-  .products-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--sf-border); }
+  .products-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; background: transparent; }
   .product-card { background: #fff; border-radius: 0; padding: 0 0 1.5rem; cursor: pointer; transition: opacity 0.2s; border: none; }
   .product-card:hover { background: #fff; opacity: 0.85; }
   .product-thumb {
     width: 100%; aspect-ratio: 1/1; background: var(--sf-grey); border-radius: 0;
     margin-bottom: 1rem; overflow: hidden; display: flex; align-items: center; justify-content: center;
-    font-size: 64px;
+    font-size: 64px; position: relative;
   }
   .product-card:hover .product-thumb { transform: none; }
   .product-thumb img, .product-thumb video { width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+  .thumb-primary { position: absolute; inset: 0; }
+  .thumb-secondary { position: absolute; inset: 0; opacity: 0; transition: opacity 0.3s ease; }
+  .product-thumb:hover .thumb-secondary { opacity: 1; }
   .product-name { font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
   .product-color { font-size: 11px; letter-spacing: 0.5px; color: var(--sf-text-grey); margin-bottom: 6px; }
   .product-price { font-size: 11px; letter-spacing: 0.5px; font-weight: 400; }
@@ -553,7 +556,7 @@
     .nav-links { gap: 12px; }
     .hero-title { font-size: 2rem; }
     .collection-grid, .products-grid, .admin-grid { grid-template-columns: 1fr; }
-    .products-grid { grid-template-columns: repeat(2,1fr); gap: 1px; }
+    .products-grid { grid-template-columns: repeat(2,1fr); gap: 0; }
     .detail-layout { flex-direction: column; gap: 1.5rem; }
     .detail-left { order: 1; width: 100%; padding-top: 0; padding-left: 0; }
     .detail-center { order: 2; width: 100%; }
@@ -1205,13 +1208,19 @@ async function renderProducts(filter) {
   for (const p of list) {
     if (p.media && p.media.length) {
       const first = p.media[0];
+      const second = p.media[1];
       const el = document.getElementById('thumb-' + p.id);
       if (el && first.url) {
-        if (first.type && first.type.startsWith('video/')) {
-          el.innerHTML = `<video src="${first.url}" muted playsinline></video>`;
-        } else {
-          el.innerHTML = `<img src="${first.url}" alt="${p.name}">`;
+        const firstTag = (first.type && first.type.startsWith('video/'))
+          ? `<video class="thumb-primary" src="${first.url}" muted playsinline></video>`
+          : `<img class="thumb-primary" src="${first.url}" alt="${p.name}">`;
+        let secondTag = '';
+        if (second && second.url) {
+          secondTag = (second.type && second.type.startsWith('video/'))
+            ? `<video class="thumb-secondary" src="${second.url}" muted playsinline></video>`
+            : `<img class="thumb-secondary" src="${second.url}" alt="${p.name}">`;
         }
+        el.innerHTML = firstTag + secondTag;
       }
     }
   }

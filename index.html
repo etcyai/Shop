@@ -193,10 +193,10 @@
 
 
   /* PRODUCT DETAIL */
-  .detail-container { max-width: 1800px; margin: 0 auto; padding: 3rem 1rem; }
+  .detail-container { max-width: 1800px; margin: 0 auto; padding: 3rem 1rem; min-height: calc(100vh - 48px); display: flex; align-items: center; }
   .back-link { font-size: 14px; color: var(--sf-blue); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 2rem; margin-left: 0.5rem; }
   #page-detail .back-link { position: fixed; top: 58px; left: 2.5rem; z-index: 150; margin: 0; }
-  .detail-layout { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+  .detail-layout { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; width: 100%; }
   .detail-left { width: 240px; flex-shrink: 0; padding-top: 1.5rem; padding-left: 0.5rem; }
   .detail-right { width: 240px; flex-shrink: 0; padding-top: 1.5rem; padding-right: 0.5rem; }
   .detail-center { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; }
@@ -227,8 +227,7 @@
   .carousel-btn.next { right: 14px; }
   .carousel-btn i { font-size: 20px; color: var(--sf-dark); text-shadow: 0 1px 4px rgba(255,255,255,0.7); }
 
-  .carousel-count { position: absolute; bottom: 16px; right: 16px; color: var(--sf-dark); font-size: 13px; font-weight: 400; text-shadow: 0 1px 4px rgba(255,255,255,0.7); opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
-  .detail-center:hover .carousel-count { opacity: 1; }
+
 
   .detail-info { padding: 1rem 0; }
   .detail-category { font-size: 12px; font-weight: 600; letter-spacing: 2px; color: var(--sf-text-grey); text-transform: uppercase; margin-bottom: 14px; }
@@ -658,7 +657,6 @@
           <div class="carousel-track" id="carousel-track"></div>
           <button class="carousel-btn prev" id="carousel-prev" onclick="carouselMove(-1)"><i class="ti ti-chevron-left"></i></button>
           <button class="carousel-btn next" id="carousel-next" onclick="carouselMove(1)"><i class="ti ti-chevron-right"></i></button>
-          <div class="carousel-count" id="carousel-count"></div>
         </div>
       </div>
 
@@ -1237,14 +1235,12 @@ async function buildCarousel(p) {
   carouselMedia = p.media || [];
 
   const track = document.getElementById('carousel-track');
-  const count = document.getElementById('carousel-count');
   const prevBtn = document.getElementById('carousel-prev');
   const nextBtn = document.getElementById('carousel-next');
 
   if (!carouselMedia.length) {
     // fallback emoji
     track.innerHTML = `<div class="carousel-slide" style="font-size:120px">${p.emoji||'🛍'}</div>`;
-    count.textContent = '';
     prevBtn.style.display = 'none';
     nextBtn.style.display = 'none';
     return;
@@ -1257,7 +1253,6 @@ async function buildCarousel(p) {
 
   if (!slides.length) {
     track.innerHTML = `<div class="carousel-slide">${p.emoji||'🛍'}</div>`;
-    count.textContent = '';
     prevBtn.style.display = 'none'; nextBtn.style.display = 'none';
     return;
   }
@@ -1276,7 +1271,6 @@ async function buildCarousel(p) {
 function updateCarouselUI(total) {
   const track = document.getElementById('carousel-track');
   track.style.transform = `translateX(-${carouselIndex * 100}%)`;
-  document.getElementById('carousel-count').textContent = total > 1 ? `${carouselIndex+1} / ${total}` : '';
 }
 function carouselMove(dir) {
   const total = document.querySelectorAll('.carousel-slide').length;

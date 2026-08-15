@@ -2102,7 +2102,7 @@ window.addEventListener('customer-auth-changed', (e) => {
   const btn = document.getElementById('customer-auth-btn');
   if (user) {
     const isAdmin = user.email === ADMIN_EMAIL;
-    slot.innerHTML = '👤 ' + (user.displayName || user.email)
+    slot.innerHTML = (user.displayName || user.email)
       + (isAdmin ? ' <span style="color:var(--sf-blue);cursor:pointer;text-decoration:underline;" onclick="event.stopPropagation();navigate(\'admin\')">後台管理</span>' : '')
       + ' ｜ 登出';
     slot.style.display = 'inline-block';

@@ -1485,6 +1485,37 @@ function generateOrderId() {
   return 'GC' + ymd + rand;
 }
 
+// ============================================================
+// TELEGRAM 訂單通知 — 客人下訂單後，自動發訊息到店主的 Telegram
+// ============================================================
+const TELEGRAM_BOT_TOKEN = '8671316110:AAFk6MtfOBoNhVJ4yJJ_ep_RyP5azUXux6A';
+const TELEGRAM_CHAT_ID = '8271042079';
+
+async function sendTelegramOrderNotification(order) {
+  try {
+    const itemsText = order.items.map(i => `・${i.name}（${i.color}/${i.size}）× ${i.qty}`).join('\n');
+    const message =
+      `🛍 新訂單通知\n\n` +
+      `訂單編號：${order.orderId}\n` +
+      `客戶姓名：${order.customerName}\n` +
+      `聯絡電話：${order.customerPhone}\n\n` +
+      `${itemsText}\n\n` +
+      `取貨方式：${shippingMethodLabel(order)}\n` +
+      `付款方式：${paymentMethodLabel(order)}\n` +
+      `總金額：NT$ ${order.total.toLocaleString()}` +
+      (order.customerNote ? `\n備註：${order.customerNote}` : '');
+
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message })
+    });
+  } catch (err) {
+    // 通知失敗不影響訂單本身，只記錄在 console
+    console.error('Telegram 通知發送失敗', err);
+  }
+}
+
 async function submitCheckout(e) {
   e.preventDefault();
   if (!cart.length) { showToast('購物車是空的'); return false; }
@@ -1520,6 +1551,7 @@ async function submitCheckout(e) {
     await window.fb.setDoc(window.fb.doc(window.fb.db, 'orders', order.orderId), order);
     cart = []; updateBadge();
     myOrderCount++; updateOrderBadge();
+    sendTelegramOrderNotification(order);
     showOrderConfirmation(order);
     navigate('order-confirm');
   } catch (err) {

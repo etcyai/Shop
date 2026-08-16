@@ -1016,7 +1016,7 @@
   // ============================================================
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
-    getFirestore, collection, doc, getDocs, setDoc, deleteDoc
+    getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     getAuth, setPersistence, browserLocalPersistence,
@@ -1024,6 +1024,9 @@
     onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail,
     GoogleAuthProvider, signInWithPopup
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    initializeAppCheck, ReCaptchaV3Provider
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAkHSAQCOdbjqlzNVFQQGnkahD7Jz6XG3U",
@@ -1036,6 +1039,15 @@
   };
 
   const fbApp = initializeApp(firebaseConfig);
+
+  // App Check — 防止別人複製你的 Firebase 設定後拿去亂打 API
+  // ⚠️ 下面這組 site key 是「先佔位」，你要去 Google reCAPTCHA 後台申請一組屬於
+  // gc-shopp 的 reCAPTCHA v3 site key，換掉下面這行才會真的生效（步驟我在對話裡有說明）
+  initializeAppCheck(fbApp, {
+    provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_V3_SITE_KEY'),
+    isTokenAutoRefreshEnabled: true
+  });
+
   const db = getFirestore(fbApp);
   const auth = getAuth(fbApp);
   setPersistence(auth, browserLocalPersistence).catch((e) => console.error('無法設定登入狀態保存方式', e));
@@ -1044,7 +1056,7 @@
   // 把這些工具掛到 window，讓下面的一般 <script>（非 module）可以呼叫
   window.fb = {
     db,
-    collection, doc, getDocs, setDoc, deleteDoc,
+    collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where,
     auth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
     onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail,
     googleProvider, signInWithPopup
@@ -1594,12 +1606,9 @@ async function lookupOrder() {
 
   resultEl.innerHTML = '<p style="color:var(--sf-text-grey);padding:1rem 0;">查詢中...</p>';
   try {
-    const snap = await window.fb.getDocs(window.fb.collection(window.fb.db, 'orders'));
-    let found = null;
-    snap.forEach(d => {
-      const o = d.data();
-      if (o.orderId === orderId && o.customerPhone === phone) found = o;
-    });
+    const ref = window.fb.doc(window.fb.db, 'orders', orderId);
+    const snap = await window.fb.getDoc(ref);
+    const found = (snap.exists() && snap.data().customerPhone === phone) ? snap.data() : null;
     resultEl.innerHTML = found ? renderOrderCard(found) : '<p style="color:var(--sf-red);padding:1rem 0;">找不到符合的訂單，請確認訂單編號與電話是否正確。</p>';
   } catch (err) {
     console.error(err);
@@ -1631,12 +1640,13 @@ async function renderMyOrders() {
   section.style.display = 'block';
   listEl.innerHTML = '<p style="color:var(--sf-text-grey);">載入中...</p>';
   try {
-    const snap = await window.fb.getDocs(window.fb.collection(window.fb.db, 'orders'));
+    const q = window.fb.query(
+      window.fb.collection(window.fb.db, 'orders'),
+      window.fb.where('customerEmail', '==', currentCustomerUser.email)
+    );
+    const snap = await window.fb.getDocs(q);
     const mine = [];
-    snap.forEach(d => {
-      const o = d.data();
-      if (o.customerEmail === currentCustomerUser.email) mine.push(o);
-    });
+    snap.forEach(d => mine.push(d.data()));
     mine.sort((a,b) => b.createdAt - a.createdAt);
     listEl.innerHTML = mine.length ? mine.map(renderOrderCard).join('') : '<p style="color:var(--sf-text-grey);">目前沒有訂單紀錄。</p>';
     myOrderCount = mine.length; updateOrderBadge();
@@ -1693,10 +1703,7 @@ async function renderOrdersAdmin() {
 async function updateOrderStatus(orderId, status) {
   try {
     const ref = window.fb.doc(window.fb.db, 'orders', orderId);
-    const snap = await window.fb.getDocs(window.fb.collection(window.fb.db, 'orders'));
-    let existing = null;
-    snap.forEach(d => { if (d.id === orderId) existing = d.data(); });
-    await window.fb.setDoc(ref, { ...(existing||{}), status });
+    await window.fb.updateDoc(ref, { status });
     showToast('訂單狀態已更新');
   } catch (err) {
     console.error(err);
@@ -1708,10 +1715,7 @@ async function updateOrderNote(orderId) {
   const note = document.getElementById('admin-note-' + orderId).value.trim();
   try {
     const ref = window.fb.doc(window.fb.db, 'orders', orderId);
-    const snap = await window.fb.getDocs(window.fb.collection(window.fb.db, 'orders'));
-    let existing = null;
-    snap.forEach(d => { if (d.id === orderId) existing = d.data(); });
-    await window.fb.setDoc(ref, { ...(existing||{}), adminNote: note });
+    await window.fb.updateDoc(ref, { adminNote: note });
     showToast('備註已儲存');
   } catch (err) {
     console.error(err);

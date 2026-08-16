@@ -625,6 +625,10 @@
         <span>購物袋</span>
         <span class="badge-dot" id="cart-count">0</span>
       </div>
+      <div class="side-menu-item" onclick="closeSideMenu();navigate('my-info')">
+        <i class="ti ti-file-invoice"></i>
+        <span>結帳資訊</span>
+      </div>
       <div class="side-menu-item">
         <i class="ti ti-search"></i>
         <span>搜尋</span>
@@ -768,6 +772,40 @@
       </div>
 
       <button type="submit" class="checkout-btn" id="checkout-submit-btn">送出訂單</button>
+    </form>
+  </div>
+</div>
+
+<!-- MY CHECKOUT INFO（客戶儲存收件資訊，僅設定用，不含訂單摘要/送出） -->
+<div class="page" id="page-my-info">
+  <div class="cart-wrap">
+    <div class="back-link" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 返回首頁</div>
+    <h2 class="cart-title">結帳資訊</h2>
+    <p style="font-size:14px;color:var(--sf-text-grey);margin-top:-1.5rem;margin-bottom:2rem;">先把收件資訊存起來，之後結帳時會自動帶入，不用每次重新填寫。</p>
+    <form id="my-info-form" onsubmit="return saveMyInfoForm(event)">
+      <div class="checkout-section">
+        <div class="checkout-section-title">收件資訊</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">姓名</label><input class="form-input" id="mi-name" type="text" required></div>
+          <div class="form-group"><label class="form-label">聯絡電話</label><input class="form-input" id="mi-phone" type="tel" placeholder="09xxxxxxxx" required></div>
+        </div>
+        <div class="form-group"><label class="form-label">Email（用於查詢訂單）</label><input class="form-input" id="mi-email" type="email" required></div>
+      </div>
+
+      <div class="checkout-section">
+        <div class="checkout-section-title">取貨門市</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">超商品牌</label>
+            <select class="form-input" id="mi-store-brand">
+              <option value="7-11">7-11</option>
+              <option value="全家">全家 FamilyMart</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">門市名稱</label><input class="form-input" id="mi-store-name" type="text" placeholder="例：忠孝門市" required></div>
+        </div>
+      </div>
+
+      <button type="submit" class="checkout-btn" id="my-info-save-btn">儲存資訊</button>
     </form>
   </div>
 </div>
@@ -1200,6 +1238,7 @@ function navigate(page) {
   const title = {home:'GC',list:'商店 — 全部系列',detail:'設計細節',cart:'購物袋',checkout:'結帳',
     'order-confirm':'訂單成立',
     'order-lookup':'查詢訂單',
+    'my-info':'結帳資訊',
     privacy:'隱私權政策', terms:'服務條款', admin:'後台管理'};
   const subnavTitleEl = document.getElementById('subnav-page-title');
   if (subnavTitleEl) subnavTitleEl.textContent = title[page] || 'GC';
@@ -1207,6 +1246,7 @@ function navigate(page) {
   if (page === 'cart') renderCart();
   if (page === 'checkout') renderCheckoutSummary();
   if (page === 'order-lookup') renderMyOrders();
+  if (page === 'my-info') loadMyInfoForm();
   if (page === 'admin') renderAdmin();
   window.scrollTo({top:0, behavior:'smooth'});
 }
@@ -1487,6 +1527,73 @@ function renderCheckoutSummary() {
   // 若已登入，Email 欄位自動帶入
   if (currentCustomerUser && currentCustomerUser.email) {
     document.getElementById('co-email').value = currentCustomerUser.email;
+  }
+  // 如果客戶之前有存過「結帳資訊」，自動帶入姓名/電話/門市，省得重填
+  prefillCheckoutFromSavedInfo();
+}
+
+// ============================================================
+// 結帳資訊（客戶儲存的收件資訊，設定一次、之後結帳自動帶入）
+// ============================================================
+async function loadMyInfoForm() {
+  if (!currentCustomerUser) return;
+  document.getElementById('mi-email').value = currentCustomerUser.email || '';
+  try {
+    const ref = window.fb.doc(window.fb.db, 'customerProfiles', currentCustomerUser.uid);
+    const snap = await window.fb.getDoc(ref);
+    if (snap.exists()) {
+      const d = snap.data();
+      document.getElementById('mi-name').value = d.name || '';
+      document.getElementById('mi-phone').value = d.phone || '';
+      document.getElementById('mi-email').value = d.email || currentCustomerUser.email || '';
+      document.getElementById('mi-store-brand').value = d.storeBrand || '7-11';
+      document.getElementById('mi-store-name').value = d.storeName || '';
+    }
+  } catch (err) {
+    console.error('載入結帳資訊失敗', err);
+  }
+}
+
+async function saveMyInfoForm(e) {
+  e.preventDefault();
+  if (!currentCustomerUser) { showToast('請先登入'); return false; }
+  const btn = document.getElementById('my-info-save-btn');
+  const profile = {
+    name: document.getElementById('mi-name').value.trim(),
+    phone: document.getElementById('mi-phone').value.trim(),
+    email: document.getElementById('mi-email').value.trim().toLowerCase(),
+    storeBrand: document.getElementById('mi-store-brand').value,
+    storeName: document.getElementById('mi-store-name').value.trim()
+  };
+  btn.disabled = true; btn.textContent = '儲存中...';
+  try {
+    await window.fb.setDoc(window.fb.doc(window.fb.db, 'customerProfiles', currentCustomerUser.uid), profile);
+    showToast('結帳資訊已儲存 ✓');
+  } catch (err) {
+    console.error(err);
+    showToast('儲存失敗，請檢查網路連線');
+  } finally {
+    btn.disabled = false; btn.textContent = '儲存資訊';
+  }
+  return false;
+}
+
+// 結帳頁打開時，如果有存過的結帳資訊就自動帶入（客戶仍可自行修改）
+async function prefillCheckoutFromSavedInfo() {
+  if (!currentCustomerUser) return;
+  try {
+    const ref = window.fb.doc(window.fb.db, 'customerProfiles', currentCustomerUser.uid);
+    const snap = await window.fb.getDoc(ref);
+    if (snap.exists()) {
+      const d = snap.data();
+      if (d.name) document.getElementById('co-name').value = d.name;
+      if (d.phone) document.getElementById('co-phone').value = d.phone;
+      if (d.email) document.getElementById('co-email').value = d.email;
+      if (d.storeBrand) document.getElementById('co-store-brand').value = d.storeBrand;
+      if (d.storeName) document.getElementById('co-store-name').value = d.storeName;
+    }
+  } catch (err) {
+    console.error('自動帶入結帳資訊失敗', err);
   }
 }
 
@@ -2168,6 +2275,11 @@ navigate = function(page) {
   }
   if (page === 'checkout' && !currentCustomerUser) {
     showToast('請先登入才能結帳');
+    openCustomerAuth('signin');
+    return;
+  }
+  if (page === 'my-info' && !currentCustomerUser) {
+    showToast('請先登入才能設定結帳資訊');
     openCustomerAuth('signin');
     return;
   }

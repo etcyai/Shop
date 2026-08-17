@@ -304,6 +304,9 @@
     padding: 12px 20px; min-width: 54px; border: 1px solid #d2d2d7; background: transparent;
     border-radius: 10px; font-size: 14px; cursor: pointer; transition: all 0.2s;
   }
+  .size-btn.soldout {
+    color: #c7c7cc; border-color: #e5e5ea; text-decoration: line-through; cursor: not-allowed;
+  }
   .size-btn.selected { border: 2px solid var(--sf-dark); font-weight: 600; }
   .color-swatches { display: flex; gap: 14px; margin-bottom: 3.5rem; }
   .swatch { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); outline: 2px solid transparent; transition: all 0.2s; }
@@ -479,6 +482,11 @@
 
   /* COLOR EDITOR */
   .colors-list { display: flex; flex-direction: column; gap: 8px; }
+  .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px,1fr)); gap: 10px; }
+  .stock-entry { display: flex; flex-direction: column; gap: 4px; }
+  .stock-entry label { font-size: 12px; color: var(--sf-text-grey); font-weight: 600; }
+  .stock-entry input { padding: 8px 10px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; font-family: inherit; }
+  .stock-empty-hint { font-size: 13px; color: var(--sf-text-grey); }
   .color-entry { display: flex; align-items: center; gap: 8px; }
   .color-entry input[type="color"] { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #d2d2d7; cursor: pointer; padding: 2px; }
   .color-entry .form-input { flex: 1; }
@@ -757,7 +765,7 @@
       <!-- RIGHT: price / size / color / buttons -->
       <div class="detail-right">
         <div class="detail-price" id="detail-price">NT$ 0</div>
-        <div class="field-label">尺寸：<span id="selected-size-label">S</span></div>
+        <div class="field-label">尺寸：<span id="selected-size-label">S</span> <span id="stock-info-label" style="color:var(--sf-text-grey);"></span></div>
         <div class="size-grid" id="size-selector-container"></div>
         <div class="field-label">外觀顏色：<span id="selected-color-label">預設色</span></div>
         <div class="color-swatches" id="color-swatches-container"></div>
@@ -1027,7 +1035,12 @@
 
     <div class="form-group">
       <label class="form-label">尺寸選項 <span style="font-weight:400;color:#6e6e73">（用逗號分隔，例：XS,S,M,L,XL）</span></label>
-      <input class="form-input" id="f-sizes" type="text" placeholder="XS,S,M,L,XL">
+      <input class="form-input" id="f-sizes" type="text" placeholder="XS,S,M,L,XL" oninput="renderStockInputs()">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">庫存 <span style="font-weight:400;color:#6e6e73">（每個尺寸各自的庫存數量）</span></label>
+      <div class="stock-grid" id="stock-inputs"></div>
     </div>
 
     <div class="form-group">
@@ -1102,7 +1115,7 @@
   // ============================================================
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
-    getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where
+    getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, increment
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     getAuth, setPersistence, browserLocalPersistence,
@@ -1142,7 +1155,7 @@
   // 把這些工具掛到 window，讓下面的一般 <script>（非 module）可以呼叫
   window.fb = {
     db,
-    collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where,
+    collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, increment,
     auth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
     onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail,
     googleProvider, signInWithPopup
@@ -1442,7 +1455,10 @@ async function openProductDetail(id) {
   if (!p) return;
   currentProduct = p;
   const sizes = (p.sizes && p.sizes.length) ? p.sizes : ['XS','S','M','L','XL'];
-  activeSize = sizes[0];
+  const stock = p.stock || {};
+  // 預設選第一個還有庫存的尺寸；如果全部缺貨，退回選第一個尺寸（按鈕會顯示缺貨、無法加購）
+  const firstInStock = sizes.find(s => (stock[s] === undefined || stock[s] > 0));
+  activeSize = firstInStock || sizes[0];
   activeColor = (p.colors && p.colors[0]) ? p.colors[0].name : '';
 
   document.getElementById('detail-cat').textContent = p.cat;
@@ -1452,32 +1468,77 @@ async function openProductDetail(id) {
   document.getElementById('selected-size-label').textContent = activeSize;
   document.getElementById('selected-color-label').textContent = activeColor;
 
-  // Sizes
-  document.getElementById('size-selector-container').innerHTML = sizes.map((s,i) =>
-    `<button class="size-btn ${i===0?'selected':''}" onclick="selectSize(this,'${s}')">${s}</button>`
-  ).join('');
+  // Sizes（庫存為 0 的尺寸顯示缺貨、無法點選）
+  document.getElementById('size-selector-container').innerHTML = sizes.map((s) => {
+    const qty = stock[s];
+    const isSoldout = qty !== undefined && qty <= 0;
+    const isSelected = s === activeSize;
+    return `<button class="size-btn ${isSelected?'selected':''} ${isSoldout?'soldout':''}"
+      ${isSoldout ? 'disabled' : `onclick="selectSize(this,'${s}')"`}>${s}</button>`;
+  }).join('');
 
   // Colors
   document.getElementById('color-swatches-container').innerHTML = (p.colors||[]).map((c,i) =>
     `<div class="swatch ${i===0?'selected':''}" style="background:${c.hex}" onclick="selectColor(this,'${c.name}')"></div>`
   ).join('');
 
+  updateStockInfoLabel();
+  updateAddToCartAvailability();
   await buildCarousel(p);
   navigate('detail');
+}
+
+function updateStockInfoLabel() {
+  const label = document.getElementById('stock-info-label');
+  if (!currentProduct || !currentProduct.stock) { label.textContent = ''; return; }
+  const qty = currentProduct.stock[activeSize];
+  if (qty === undefined) { label.textContent = ''; }
+  else if (qty <= 0) { label.textContent = '（缺貨中）'; }
+  else if (qty <= 5) { label.textContent = `（剩餘 ${qty} 件）`; }
+  else { label.textContent = ''; }
+}
+
+function updateAddToCartAvailability() {
+  const addBtn = document.getElementById('add-to-cart-btn');
+  const buyBtn = document.getElementById('buy-now-btn');
+  const qty = currentProduct && currentProduct.stock ? currentProduct.stock[activeSize] : undefined;
+  const soldout = qty !== undefined && qty <= 0;
+  addBtn.disabled = soldout;
+  buyBtn.disabled = soldout;
+  addBtn.style.opacity = soldout ? '0.5' : '1';
+  buyBtn.style.opacity = soldout ? '0.5' : '1';
+  addBtn.style.cursor = soldout ? 'not-allowed' : 'pointer';
+  buyBtn.style.cursor = soldout ? 'not-allowed' : 'pointer';
+  addBtn.textContent = soldout ? '此尺寸已缺貨' : '加入購物車';
 }
 
 function selectSize(el, size) {
   document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
   el.classList.add('selected'); activeSize = size;
   document.getElementById('selected-size-label').textContent = size;
+  updateStockInfoLabel();
+  updateAddToCartAvailability();
 }
 function selectColor(el, name) {
   document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
   el.classList.add('selected'); activeColor = name;
   document.getElementById('selected-color-label').textContent = name;
 }
+
+// 檢查購物車裡＋這次要加的數量，是否超過目前庫存
+function canAddToCart(qtyToAdd) {
+  if (!currentProduct || !currentProduct.stock) return true; // 沒有設定庫存的商品不限制
+  const available = currentProduct.stock[activeSize];
+  if (available === undefined) return true;
+  const alreadyInCart = cart
+    .filter(i => i.id === currentProduct.id && i.size === activeSize && i.color === activeColor)
+    .reduce((s,i) => s + i.qty, 0);
+  return (alreadyInCart + qtyToAdd) <= available;
+}
+
 function executeAddToCart() {
   if (!currentProduct) return;
+  if (!canAddToCart(1)) { showToast('庫存不足，無法再加入更多'); return; }
   const existing = cart.find(i => i.id === currentProduct.id && i.size === activeSize && i.color === activeColor);
   if (existing) existing.qty++;
   else cart.push({
@@ -1495,6 +1556,7 @@ function executeAddToCart() {
 
 function buyNow() {
   if (!currentProduct) return;
+  if (!canAddToCart(1)) { showToast('庫存不足，無法購買'); return; }
   const existing = cart.find(i => i.id === currentProduct.id && i.size === activeSize && i.color === activeColor);
   if (existing) existing.qty++;
   else cart.push({
@@ -1692,7 +1754,7 @@ async function submitCheckout(e) {
 
   const order = {
     orderId: generateOrderId(),
-    items: cart.map(i => ({ name: i.name, color: i.color, size: i.size, price: i.price, qty: i.qty })),
+    items: cart.map(i => ({ id: i.id, name: i.name, color: i.color, size: i.size, price: i.price, qty: i.qty })),
     subtotal, shippingFee, total: subtotal + shippingFee,
     customerName: document.getElementById('co-name').value.trim(),
     customerPhone: document.getElementById('co-phone').value.trim(),
@@ -1714,6 +1776,7 @@ async function submitCheckout(e) {
   btn.disabled = true; btn.textContent = '送出中...';
   try {
     await window.fb.setDoc(window.fb.doc(window.fb.db, 'orders', order.orderId), order);
+    await deductStockForOrder(order);
     cart = []; updateBadge();
     myOrderCount++; updateOrderBadge();
     sendTelegramOrderNotification(order);
@@ -1726,6 +1789,24 @@ async function submitCheckout(e) {
     btn.disabled = false; btn.textContent = '送出訂單';
   }
   return false;
+}
+
+// 訂單成立後，把對應商品尺寸的庫存扣掉（只有該商品有設定庫存的尺寸才會扣）
+async function deductStockForOrder(order) {
+  for (const item of order.items) {
+    const product = products.find(p => p.id === item.id);
+    if (!product || !product.stock || product.stock[item.size] === undefined) continue; // 沒有設定庫存的商品/尺寸不扣
+    try {
+      await window.fb.updateDoc(
+        window.fb.doc(window.fb.db, 'products', String(item.id)),
+        { [`stock.${item.size}`]: window.fb.increment(-item.qty) }
+      );
+      // 同步更新本機畫面上的庫存數字，不用等下次重新整理
+      product.stock[item.size] = Math.max(0, (product.stock[item.size] || 0) - item.qty);
+    } catch (err) {
+      console.error('扣庫存失敗（不影響訂單本身）', item, err);
+    }
+  }
 }
 
 function shippingMethodLabel(o) {
@@ -1909,6 +1990,10 @@ async function renderAdmin() {
         ? `<video src="${m0.url}" muted playsinline></video>`
         : `<img src="${m0.url}" alt="${p.name}">`;
     }
+    const totalStock = p.stock ? Object.values(p.stock).reduce((s,n) => s + (n||0), 0) : null;
+    const stockLabel = totalStock === null
+      ? ''
+      : (totalStock > 0 ? ` ｜ 庫存 ${totalStock}` : ` ｜ <span style="color:var(--sf-red);font-weight:600;">已售罄</span>`);
     const card = document.createElement('div');
     card.className = 'admin-card';
     card.innerHTML = `
@@ -1918,7 +2003,7 @@ async function renderAdmin() {
       </div>
       <div class="admin-card-body">
         <div class="admin-card-name">${p.name}</div>
-        <div class="admin-card-meta">${p.cat} ｜ NT$ ${p.price.toLocaleString()}</div>
+        <div class="admin-card-meta">${p.cat} ｜ NT$ ${p.price.toLocaleString()}${stockLabel}</div>
         <div class="admin-card-actions">
           <button class="btn-edit" onclick="openModal(${p.id})"><i class="ti ti-pencil"></i> 編輯</button>
           <button class="btn-delete" onclick="deleteProduct(${p.id})"><i class="ti ti-trash"></i></button>
@@ -1958,6 +2043,7 @@ async function openModal(productId) {
       document.getElementById('f-desc').value = p.desc || '';
       document.getElementById('f-sizes').value = (p.sizes && p.sizes.length ? p.sizes : ['XS','S','M','L','XL']).join(',');
       (p.colors || []).forEach(c => addColorEntry(c.name, c.hex));
+      renderStockInputs(p.stock || {});
       // Load existing media (already have url + type from Firestore)
       for (const m of (p.media || [])) {
         if (m.url) pendingMedia.push({ id: m.id, url: m.url, type: m.type, isNew: false });
@@ -1966,12 +2052,36 @@ async function openModal(productId) {
     }
   } else {
     addColorEntry();
+    renderStockInputs({});
   }
 
   document.getElementById('modal-overlay').classList.add('open');
 }
 function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
 function closeModalOnOverlay(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+
+// 庫存輸入框：跟著「尺寸選項」欄位動態產生，每個尺寸一格數量輸入
+function renderStockInputs(existingStock) {
+  const container = document.getElementById('stock-inputs');
+  const sizes = document.getElementById('f-sizes').value.split(',').map(s => s.trim()).filter(Boolean);
+  // 保留目前畫面上已經輸入的數量（重新產生格子時不要把使用者剛打的值洗掉）
+  const currentValues = {};
+  container.querySelectorAll('.stock-entry input').forEach(inp => { currentValues[inp.dataset.size] = inp.value; });
+
+  if (!sizes.length) {
+    container.innerHTML = '<p class="stock-empty-hint">請先填寫上方的尺寸選項</p>';
+    return;
+  }
+  container.innerHTML = sizes.map(s => {
+    const val = currentValues[s] !== undefined
+      ? currentValues[s]
+      : (existingStock && existingStock[s] !== undefined ? existingStock[s] : 0);
+    return `<div class="stock-entry">
+      <label>${s}</label>
+      <input type="number" min="0" step="1" data-size="${s}" value="${val}">
+    </div>`;
+  }).join('');
+}
 
 // COLOR ENTRIES
 function addColorEntry(name='', hex='#c7c7cc') {
@@ -2053,6 +2163,11 @@ async function saveProduct() {
     name: row.querySelector('input[type=text]').value || '預設色'
   }));
 
+  const stock = {};
+  document.querySelectorAll('#stock-inputs .stock-entry input').forEach(inp => {
+    stock[inp.dataset.size] = Math.max(0, parseInt(inp.value) || 0);
+  });
+
   // 上傳新的圖片/影片到 Cloudinary，取得永久網址
   showToast('上傳中，請稍候...');
   const mediaRefs = [];
@@ -2075,12 +2190,12 @@ async function saveProduct() {
   if (editingId) {
     const idx = products.findIndex(p => p.id === editingId);
     if (idx !== -1) {
-      products[idx] = { ...products[idx], name, cat, price, emoji, desc, sizes, colors, media: mediaRefs };
+      products[idx] = { ...products[idx], name, cat, price, emoji, desc, sizes, colors, media: mediaRefs, stock };
       savedProduct = products[idx];
     }
   } else {
     const newId = Date.now();
-    savedProduct = { id: newId, name, cat, price, emoji, desc, sizes, colors, media: mediaRefs };
+    savedProduct = { id: newId, name, cat, price, emoji, desc, sizes, colors, media: mediaRefs, stock };
     products.push(savedProduct);
   }
 

@@ -10,7 +10,7 @@
   <!-- 1. 瀏覽器分頁小圖示 (Favicon) -->
   <meta property="og:title" content="GC SHOP">
   <meta property="og:description" content="Just a small shop.">
-  <meta property="og:image" content="https://etcyai.github.io/Shop/small_logo.png">
+  <meta property="og:image" content="https://shop-aek.pages.dev/small_logo.png">
   <meta property="og:type" content="website">
 </head>
 </body>
@@ -1121,7 +1121,7 @@
     getAuth, setPersistence, browserLocalPersistence,
     createUserWithEmailAndPassword, signInWithEmailAndPassword,
     onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail,
-    GoogleAuthProvider, signInWithPopup
+    GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
     initializeAppCheck, ReCaptchaV3Provider
@@ -1143,7 +1143,7 @@
   // ⚠️ 下面這組 site key 是「先佔位」，你要去 Google reCAPTCHA 後台申請一組屬於
   // gc-shopp 的 reCAPTCHA v3 site key，換掉下面這行才會真的生效（步驟我在對話裡有說明）
   initializeAppCheck(fbApp, {
-    provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_V3_SITE_KEY'),
+    provider: new ReCaptchaV3Provider('6LcqVI0tAAAAABYOHnr1pQ-EcfcwdFlNnaHIOIXM'),
     isTokenAutoRefreshEnabled: true
   });
 
@@ -1158,13 +1158,22 @@
     collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, increment,
     auth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
     onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail,
-    googleProvider, signInWithPopup
+    googleProvider, signInWithPopup, signInWithRedirect, getRedirectResult
   };
 
   // 客戶登入狀態改變時（登入/登出/剛載入頁面時）通知主程式
   onAuthStateChanged(auth, (user) => {
     window.dispatchEvent(new CustomEvent('customer-auth-changed', { detail: { user } }));
   });
+
+  // 手機改用「整頁跳轉」登入後，回到網站時在這裡接收登入結果
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result && result.user) window.dispatchEvent(new CustomEvent('google-redirect-done'));
+    })
+    .catch((err) => {
+      window.dispatchEvent(new CustomEvent('google-redirect-error', { detail: { err } }));
+    });
 
   // 通知主程式 Firebase 已就緒
   window.dispatchEvent(new Event('fb-ready'));
@@ -2334,12 +2343,22 @@ async function handleGoogleSignIn(panel) {
   if (btn.disabled) return; // 防止連點造成重複送出
 
   btn.disabled = true;
+  // 手機瀏覽器常常直接擋掉彈出視窗，手機改用整頁跳轉；電腦維持原本的彈出視窗
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   try {
+    if (isMobile) {
+      await window.fb.signInWithRedirect(window.fb.auth, window.fb.googleProvider);
+      return; // 頁面會跳去 Google，登入完再回到網站
+    }
     await window.fb.signInWithPopup(window.fb.auth, window.fb.googleProvider);
     closeCustomerAuth();
     showToast('已使用 Google 帳號登入 ✓');
   } catch (err) {
-    if (err && err.code === 'auth/popup-closed-by-user') {
+    if (err && (err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment')) {
+      // 彈出視窗被擋時自動改走整頁跳轉
+      try { await window.fb.signInWithRedirect(window.fb.auth, window.fb.googleProvider); return; }
+      catch (e2) { if (errEl) errEl.textContent = customerAuthErrorMessage(e2); }
+    } else if (err && err.code === 'auth/popup-closed-by-user') {
       // 使用者自己關掉 Google 登入視窗，不用顯示錯誤訊息
     } else if (errEl) {
       errEl.textContent = customerAuthErrorMessage(err);
@@ -2348,6 +2367,17 @@ async function handleGoogleSignIn(panel) {
     btn.disabled = false;
   }
 }
+
+// 整頁跳轉登入完成／失敗後回到網站時的提示
+window.addEventListener('google-redirect-done', () => {
+  closeCustomerAuth();
+  showToast('已使用 Google 帳號登入 ✓');
+});
+window.addEventListener('google-redirect-error', (e) => {
+  openCustomerAuth('signin');
+  const errEl = document.getElementById('si-error');
+  if (errEl) errEl.textContent = customerAuthErrorMessage(e.detail.err);
+});
 
 async function handleCustomerSignUp(e) {
   e.preventDefault();
